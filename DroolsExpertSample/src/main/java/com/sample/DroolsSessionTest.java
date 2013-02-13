@@ -14,6 +14,7 @@ import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.drools.logger.KnowledgeRuntimeLogger;
 import org.drools.logger.KnowledgeRuntimeLoggerFactory;
+import org.drools.runtime.Globals;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.StatelessKnowledgeSession;
 
@@ -26,7 +27,7 @@ public class DroolsSessionTest {
 
     public static final void main(String[] args) {
         try {
-        	testStatelessDroolsSession();
+        	testStatefulDroolsSession();
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -66,7 +67,10 @@ public class DroolsSessionTest {
         List<Object> facts = new ArrayList<Object>();
         facts.add(user);
         facts.add(task1);
+        ksession.setGlobal("operation", "ADD");
         ksession.execute(facts);
+        Globals globalVars = ksession.getGlobals();
+        System.out.println("Global Variable Operation :"+globalVars.get("operation"));
         logger.close();
     }
     
@@ -85,9 +89,12 @@ public class DroolsSessionTest {
         task1.setCompleted(false);
         task1.setOwner(user);
         user.addTask(task1);
+        ksession.setGlobal("operation", "ADD");
         ksession.insert(user);
         ksession.insert(task1);
         ksession.fireAllRules();
+        Globals globalVars = ksession.getGlobals();
+        System.out.println("Global Variable Operation :"+globalVars.get("operation"));
         ksession.dispose();
         logger.close();
     }

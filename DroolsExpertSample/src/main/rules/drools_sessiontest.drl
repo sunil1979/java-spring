@@ -1,6 +1,8 @@
 package com.sample
  
 import com.sample.*;
+
+global String operation;
  
 rule "Complete all the tasks in factbase"
     when
@@ -16,11 +18,13 @@ end
 
 rule "For any user who does not an active task, assign one"
 no-loop 
+dialect "java" 
     when
         u : User()
-        t : Task(completed == true) from u.tasks 
+        t : Task(completed == true) from u.tasks
+        eval (operation == "ADD") 
     then
-        System.out.println( "User has completed task" + t.getName() );
+        System.out.println( "User has completed task :" + t.getName() );
         Task newTask = new Task();
         newTask.setId(2);
         newTask.setName("new task");
@@ -29,5 +33,6 @@ no-loop
         u.addTask(newTask);
         insert(newTask);
         update(u)
+        drools.getWorkingMemory().setGlobal("operation","MODIFIED");
         System.out.println( "new task created" );
 end
