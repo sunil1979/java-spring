@@ -9,7 +9,7 @@ import com.ebuild.leap.util.EbuildleapConstants;
 
 //declare any global variables here
 
-rule "For Every Element Insert ElementManifest test change"
+rule "For Every Element Insert ElementManifest"
     when
         $element : Element()
         $elementManifest : ElementManifest() from $element.elementManifestList
