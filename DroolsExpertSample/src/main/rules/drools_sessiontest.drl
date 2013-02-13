@@ -1,0 +1,33 @@
+package com.sample
+ 
+import com.sample.*;
+ 
+rule "Complete all the tasks in factbase"
+    when
+    	t : Task(completed == false && id == 1)
+    	u : User() from t.owner
+    	eval(DroolsSessionTest.TEMP_CONSTANT == 1)
+    then
+        System.out.println("Incomplete Task Found" );
+        t.setCompleted(true);
+        update(t);
+        update(u);
+end
+
+rule "For any user who does not an active task, assign one"
+no-loop 
+    when
+        u : User()
+        t : Task(completed == true) from u.tasks 
+    then
+        System.out.println( "User has completed task" + t.getName() );
+        Task newTask = new Task();
+        newTask.setId(2);
+        newTask.setName("new task");
+        newTask.setCompleted(false);
+        newTask.setOwner(u);
+        u.addTask(newTask);
+        insert(newTask);
+        update(u)
+        System.out.println( "new task created" );
+end
