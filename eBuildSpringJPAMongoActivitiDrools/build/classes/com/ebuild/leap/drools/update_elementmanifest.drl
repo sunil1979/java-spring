@@ -1,0 +1,33 @@
+//created on: 25 Jan, 2013
+package com.ebuild.leap.drools
+
+//list any import classes here
+import com.ebuild.leap.pojo.ElementManifest;
+import com.ebuild.leap.pojo.Element;
+import com.ebuild.leap.util.EbuildleapConstants;
+
+//declare any global variables here
+global ElementManifest currentElementManifest;
+global List emList;
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+rule "Find required ElementManifest"
+	when
+		$elementManifest : ElementManifest(id == currentElementManifest.id)
+	then
+		emList.add($elementManifest);
+end

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd 
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+		
+	<jpa:repositories base-package="com.ebuild.leap.repository.jpa" entity-manager-factory-ref="entityManagerFactory"/>
+	
+	
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="persistenceUnitName" value="ebuildPersistenceUnit" />
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<!--bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/spring_data" />
+		<property name="user" value="root" />
+		<property name="password" value="root" />
+		<property name="acquireIncrement" value="5" />
+		<property name="minPoolSize" value="5" />
+		<property name="maxPoolSize" value="100" />
+		<property name="maxIdleTime" value="3600" />
+	</bean-->
+	
+	<bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${ebuild.database.driverClassName}" />
+		<property name="jdbcUrl" value="${ebuild.database.url}" />
+		<property name="user" value="${ebuild.database.username}" />
+		<property name="password" value="${ebuild.database.password}" />
+		<property name="acquireIncrement" value="${ebuild.database.acquireIncrement}" />
+		<property name="minPoolSize" value="${ebuild.database.minPoolSize}" />
+		<property name="maxPoolSize" value="${ebuild.database.maxPoolSize}" />
+		<property name="maxIdleTime" value="${ebuild.database.maxIdleTime}" />
+	</bean>
+	
+</beans>

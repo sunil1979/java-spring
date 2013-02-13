@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+
+
+	<bean id="activitiEntityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="activitiDataSource" />
+		<property name="persistenceUnitName" value="activitiPersistenceUnit" />
+	</bean>
+
+	<bean id="activitiTransactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="activitiEntityManagerFactory" />
+	</bean>
+
+	<bean name="activitiDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/activiti_db" />
+		<property name="user" value="root" />
+		<property name="password" value="root" />
+		<property name="acquireIncrement" value="5" />
+		<property name="minPoolSize" value="5" />
+		<property name="maxPoolSize" value="100" />
+		<property name="maxIdleTime" value="3600" />
+	</bean>
+
+	<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+		<property name="databaseType" value="mysql" />
+		<property name="dataSource" ref="activitiDataSource" />
+		<property name="transactionManager" ref="activitiTransactionManager" />
+		<property name="mailServerHost" value="smtp.gmail.com" />
+		<property name="mailServerPort" value="587" />
+		<property name="mailServerDefaultFrom" value="ebuildte@gmail.com" />
+		<property name="mailServerUsername" value="ebuildte@gmail.com" />
+		<property name="mailServerPassword" value="totalenvironment" />
+		<property name="mailServerUseSSL" value="true" />
+	</bean>
+
+	<bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+		<property name="processEngineConfiguration" ref="processEngineConfiguration" />
+	</bean>
+
+
+	<bean id="historyService" factory-bean="processEngine"
+		factory-method="getHistoryService" />
+	<bean id="runtimeService" factory-bean="processEngine"
+		factory-method="getRuntimeService" />
+	<bean id="repositoryService" factory-bean="processEngine"
+		factory-method="getRepositoryService" />
+	<bean id="identifyService" factory-bean="processEngine"
+		factory-method="getIdentityService" />
+	<bean id="taskService" factory-bean="processEngine"
+		factory-method="getTaskService" />
+	<bean id="formService" factory-bean="processEngine"
+		factory-method="getFormService" />
+
+
+</beans>

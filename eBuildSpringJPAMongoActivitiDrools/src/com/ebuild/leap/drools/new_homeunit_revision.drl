@@ -1,0 +1,66 @@
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import com.ebuild.leap.pojo.ElementManifest;
+import com.ebuild.leap.pojo.Element;
+import com.ebuild.leap.util.EbuildleapConstants;
+
+
+//declare any global variables here
+global Element tobeReplacedElement;
+global Element newChildElement;
+global ElementManifest currentElementManifest;
+global Element parentElement;
+global String operation;
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+rule "Modify ElementManifest - Replace Old Child Element with New Child Element"
+no-loop 
+dialect "mvel" 
+	when
+		$elementManifest : ElementManifest( id == currentElementManifest.id)
+		eval(operation == EbuildleapConstants.OPERATION_MODIFY)
+	then
+		modify($elementManifest){
+			setChildElement(newChildElement)
+		};
+end
+
+rule "Add ElementManifest - Create New ElementManifest, Set Child Element, Add to Parent Element"
+no-loop
+dialect "mvel" 
+	when
+		$element : Element(id == parentElement.id)
+		eval(operation == EbuildleapConstants.OPERATION_ADD)
+	then
+		modify($element){
+			addElementManifest(currentElementManifest)
+		};
+end
+
+rule "Remove ElementManifest - Remove ElementManifest from Parent Element"
+no-loop
+dialect "mvel"
+	when
+		$element : Element(id == parentElement.id)
+        $elementManifest : ElementManifest(id == currentElementManifest.id) from $element.elementManifestList
+		eval(operation == EbuildleapConstants.OPERATION_REMOVE)
+	then
+		modify($element){
+			removeElementManifest($elementManifest);
+		};
+end

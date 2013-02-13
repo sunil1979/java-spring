@@ -1,0 +1,38 @@
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import com.ebuild.leap.pojo.ElementManifest;
+import com.ebuild.leap.pojo.Element;
+import com.ebuild.leap.pojo.Category;
+import com.ebuild.leap.pojo.SubType;
+import java.util.List;
+
+
+//declare any global variables here
+global Long categoryId;
+global Long subTypeId;
+global List nodeList;
+
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+rule "Object Found"
+	when
+		$element : Element( category instanceof Category, category.id == categoryId, subType instanceof SubType, subType.id == subTypeId)
+	then
+		System.out.println("IL Node Found");
+		nodeList.add($element);
+end

@@ -1,0 +1,53 @@
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import com.ebuild.leap.pojo.ElementManifest;
+import com.ebuild.leap.pojo.Element;
+import com.ebuild.leap.pojo.Category;
+import com.ebuild.leap.pojo.SubType;
+import com.ebuild.leap.util.EbuildleapConstants;
+
+//declare any global variables here
+
+rule "For Every Element Insert ElementManifest test change"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+rule "Dado Flooring Rule1"
+	when
+		$dadoelement : Element(code1 == "XXX", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.DADO_SUBTYPE_ID )
+		$bflelement : Element(code1 != "YYY", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BFL_SUBTYPE_ID )
+		$bddelement : Element(code1 != "ZZZ", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BDD_SUBTYPE_ID )
+	then
+		modify($bflelement){
+			setCode1("YYY")
+		};
+		modify($bddelement){
+			setCode1("ZZZ")
+		};
+end
+
+rule "Dado Flooring Rule2"
+	when
+		$dadoelement : Element(code1 == "AAA", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.DADO_SUBTYPE_ID )
+		$bflelement : Element(code1 != "BBB", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BFL_SUBTYPE_ID )
+		$bddelement : Element(code1 != "CCC", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BDD_SUBTYPE_ID )
+	then
+		modify($bflelement){
+			setCode1("BBB")
+		};
+		modify($bddelement){
+			setCode1("CCC")
+		};
+end

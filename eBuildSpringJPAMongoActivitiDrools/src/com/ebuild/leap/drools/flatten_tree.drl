@@ -1,0 +1,30 @@
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import com.ebuild.leap.pojo.ElementManifest;
+import com.ebuild.leap.pojo.Element;
+import java.util.List;
+
+
+//declare any global variables here
+global List treeObjects;
+
+
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+		treeObjects.add($element);
+		treeObjects.add($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+        treeObjects.add($elementManifest.getChildElement());
+end
