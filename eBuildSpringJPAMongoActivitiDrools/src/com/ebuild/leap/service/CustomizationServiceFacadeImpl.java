@@ -1,7 +1,9 @@
 package com.ebuild.leap.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.drools.KnowledgeBase;
 import org.drools.runtime.StatefulKnowledgeSession;
@@ -15,6 +17,7 @@ import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ebuild.leap.drools.KnowledgeFactoryBean;
+import com.ebuild.leap.pojo.Category;
 import com.ebuild.leap.pojo.CostVersion;
 import com.ebuild.leap.pojo.EbuildleapResultObject;
 import com.ebuild.leap.pojo.Element;
@@ -23,6 +26,8 @@ import com.ebuild.leap.pojo.HomeUnit;
 import com.ebuild.leap.pojo.HomeUnitRevision;
 import com.ebuild.leap.pojo.HomeUnitVersion;
 import com.ebuild.leap.pojo.Product;
+import com.ebuild.leap.pojo.SubType;
+import com.ebuild.leap.pojo.Type;
 import com.ebuild.leap.pojo.User;
 import com.ebuild.leap.repository.jpa.CostVersionRepository;
 import com.ebuild.leap.repository.jpa.ElementRepository;
@@ -77,11 +82,18 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 	@Autowired
 	@Qualifier("bathroomRulesKnowledge")
 	KnowledgeFactoryBean bathroomRulesKnowledge;
-	
+
 	@Autowired
 	@Qualifier("flattenTreeRulesKnowledge")
 	KnowledgeFactoryBean flattenTreeRulesKnowledge;
-	
+
+	@Autowired
+	@Qualifier("finishPaletteKnowledge")
+	private KnowledgeFactoryBean finishPaletteKnowledge;
+
+	@Autowired
+	@Qualifier("impactLinkKnowledge")
+	private KnowledgeFactoryBean impactLinkKnowledge;
 
 	@Override
 	@Transactional
@@ -92,35 +104,35 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * Validate User Input
 			 */
-			if(user == null || user.getId() == null){
+			if (user == null || user.getId() == null) {
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_USER_ID));
 			}
-			
-			if(product == null || product.getId() == null){
+
+			if (product == null || product.getId() == null) {
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_PRODUCT_ID));
 			}
-			
-			if(costVersion == null || costVersion.getId() == null){
+
+			if (costVersion == null || costVersion.getId() == null) {
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_COSTVERSION_ID));
 			}
 			/*
 			 * STEP 1:- Refresh User, Product and CostVersion objects
 			 */
 			User userData = userRepository.findOne(user.getId());
-			if(userData == null){
-				//User not found in RDBMS - throw exception
+			if (userData == null) {
+				// User not found in RDBMS - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + user.getId());
 			}
 			Product productData = productRepository.findOne(product.getId());
-			if(productData == null){
-				//Product not found in RDBMS - throw exception
+			if (productData == null) {
+				// Product not found in RDBMS - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + product.getId());
 			}
 			CostVersion costVersionData = costVersionRepository.findOne(costVersion.getId());
-			if(costVersionData == null){
-				//CostVersion not found in RDBMS - throw exception
+			if (costVersionData == null) {
+				// CostVersion not found in RDBMS - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + costVersion.getId());
 			}
@@ -182,7 +194,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * validate user input
 			 */
-			if(homeUnitVersion == null || homeUnitVersion.getId() == null){
+			if (homeUnitVersion == null || homeUnitVersion.getId() == null) {
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_HOMEUNITVERSION_ID));
 			}
 			/*
@@ -199,8 +211,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			 * STEP 2:- Pick the Home Unit Revision from NOSQL DB
 			 */
 			HomeUnitRevision mongoLatestRevision = homeUnitRevisionMongoRepository.findOne(latestRevisionId);
-			if(mongoLatestRevision == null){
-				//Revision not found in MONGO - throw exception
+			if (mongoLatestRevision == null) {
+				// Revision not found in MONGO - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + latestRevisionId);
 			}
@@ -213,43 +225,43 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			e.printStackTrace();
 			ero.setResultStatus(EbuildleapConstants.SERVICE_CALL_FAILED);
 			ero.setErrCode(EbuildleapConstants.ERROR_RETRIEVING_LATEST_HOMEUNITREVISION);
-			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_RETRIEVING_LATEST_HOMEUNITREVISION) + " - " + e.getClass() + ": "
-					+ e.getMessage());
+			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_RETRIEVING_LATEST_HOMEUNITREVISION) + " - "
+					+ e.getClass() + ": " + e.getMessage());
 		}
 		log.debug("END ---- INSIDE HomeUnitServiceFacadeImpl - getLatestHomeUnitRevision");
 		return ero;
 	}
 
 	@Override
-	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision,
-			Element newChildElement, ElementManifest currentElementManifest) {
+	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision, Element newChildElement,
+			ElementManifest currentElementManifest, Element ILElement) {
 		try {
 			ero.clear();
 			/*
 			 * validate user input
 			 */
-			if(currentHomeUnitRevision == null || currentHomeUnitRevision.getId() == null){
-				//throw exception
+			if (currentHomeUnitRevision == null || currentHomeUnitRevision.getId() == null) {
+				// throw exception
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_HOMEUNITREVISION_ID));
 			}
-			
-			if(newChildElement == null || newChildElement.getId() == null){
-				//throw exception
+
+			if (newChildElement == null || newChildElement.getId() == null) {
+				// throw exception
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENT_ID));
 			}
-			
-			if(currentElementManifest == null || currentElementManifest.getId() == null){
-				//throw exception
+
+			if (currentElementManifest == null || currentElementManifest.getId() == null) {
+				// throw exception
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENTMANIFEST_ID));
 			}
-			
+
 			/*
 			 * STEP 1:- Create new HomeUnitRevision in RDBMS and retrieve new
 			 * HomeUnitRevision ID
 			 */
 			HomeUnitRevision currentHomeUnitRevisionData = homeUnitRevisionRepository.findOne(currentHomeUnitRevision.getId());
-			if(currentHomeUnitRevisionData == null){
-				//Throw exception
+			if (currentHomeUnitRevisionData == null) {
+				// Throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + currentHomeUnitRevision.getId());
 			}
@@ -280,7 +292,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			newMongoHomeUnitRevision.setRevisionTag(newRevision.getRevisionTag());
 			newMongoHomeUnitRevision.setRevisionNumber(newRevision.getRevisionNumber());
 			/*
-			 * Get the flattened list of tree containing elements connected by elementmanifest
+			 * Get the flattened list of tree containing elements connected by
+			 * elementmanifest
 			 */
 			KnowledgeBase kbase = (KnowledgeBase) flattenTreeRulesKnowledge.getObject();
 			StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
@@ -291,20 +304,18 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			ksession.dispose();
 			/*
 			 * Loop thru flattened tree containing elements and elementmanifest.
-			 * Modify the elementmanifest by replacing old childelement with new child element
-			 * (**Explore the possibility of using lambdaj**)
+			 * Modify the elementmanifest by replacing old childelement with new
+			 * child element (**Explore the possibility of using lambdaj**)
 			 */
-			for(Object o : treeObjects){
-				if(o instanceof ElementManifest && ((ElementManifest)o).getId().equals(currentElementManifest.getId())){
-					((ElementManifest)o).setChildElement(newChildElementData);
+			for (Object o : treeObjects) {
+				if (o instanceof ElementManifest && ((ElementManifest) o).getId().equals(currentElementManifest.getId())) {
+					((ElementManifest) o).setChildElement(newChildElementData);
 				}
 			}
 			/*
 			 * APPLY RULES
-			 * 
-			 * newMongoHomeUnitRevision =
-			 * applyBathroomRules(newMongoHomeUnitRevision);
 			 */
+			newMongoHomeUnitRevision = applyFinishRules(newMongoHomeUnitRevision, ILElement, newChildElementData);
 			/*
 			 * Save New Revision to Mongo Repository
 			 */
@@ -318,10 +329,53 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			e.printStackTrace();
 			ero.setResultStatus(EbuildleapConstants.SERVICE_CALL_FAILED);
 			ero.setErrCode(EbuildleapConstants.ERROR_CREATING_NEW_HOMEUNITREVISION);
-			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_CREATING_NEW_HOMEUNITREVISION) + " - " + e.getClass() + ": "
-					+ e.getMessage());
+			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_CREATING_NEW_HOMEUNITREVISION) + " - "
+					+ e.getClass() + ": " + e.getMessage());
 		}
 		return ero;
+	}
+
+	private HomeUnitRevision applyFinishRules(HomeUnitRevision newMongoHomeUnitRevision, Element ILElement, Element newChildElementData)
+			throws Exception {
+		/*
+		 * Lookup for compatible finish values
+		 */
+		KnowledgeBase kbase = (KnowledgeBase) finishPaletteKnowledge.getObject();
+		StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
+		List<Integer> compatibleList = new ArrayList<Integer>();
+		ksession.setGlobal("compatibleList", compatibleList);
+		ksession.setGlobal("currentFinish", newChildElementData.getFinish().getId());
+		ksession.fireAllRules();
+		ksession.dispose();
+		System.out.println("Compatible List Size :" + compatibleList.size());
+		for (Integer entry : compatibleList) {
+			System.out.println("List Entry :" + entry);
+		}
+
+		/*
+		 * Identify types and categories of elements that need to be verified
+		 * with in IL
+		 */
+		kbase = (KnowledgeBase) impactLinkKnowledge.getObject();
+		ksession = kbase.newStatefulKnowledgeSession();
+		Set<Integer> categoryCriteriaList = new HashSet<Integer>();
+		Set<Integer> typeCriteriaList = new HashSet<Integer>();
+		ksession.setGlobal("categoryCriteriaList", categoryCriteriaList);
+		ksession.setGlobal("typeCriteriaList", typeCriteriaList);
+		ksession.setGlobal("rootElement", ILElement);
+		ksession.setGlobal("changedElement", newChildElementData);
+		ksession.fireAllRules();
+		ksession.dispose();
+		System.out.println("categoryCriteriaList List Size :" + categoryCriteriaList.size());
+		for (Integer entry : categoryCriteriaList) {
+			System.out.println("List Entry :" + entry);
+		}
+		System.out.println("typeCriteriaList List Size :" + typeCriteriaList.size());
+		for (Integer entry : typeCriteriaList) {
+			System.out.println("List Entry :" + entry);
+		}
+
+		return null;
 	}
 
 	private HomeUnitRevision applyBathroomRules(HomeUnitRevision newMongoHomeUnitRevision) throws Exception {
@@ -349,7 +403,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * validate user input
 			 */
-			if(homeUnit == null || homeUnit.getId() == null){
+			if (homeUnit == null || homeUnit.getId() == null) {
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_HOMEUNIT_ID));
 			}
 			ArrayList<HomeUnitVersion> result = new ArrayList<HomeUnitVersion>();
@@ -361,8 +415,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			e.printStackTrace();
 			ero.setResultStatus(EbuildleapConstants.SERVICE_CALL_FAILED);
 			ero.setErrCode(EbuildleapConstants.ERROR_RETRIEVING_HOMEUNIT_VERSIONS);
-			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_RETRIEVING_HOMEUNIT_VERSIONS) + " - " + e.getClass() + ": "
-					+ e.getMessage());
+			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_RETRIEVING_HOMEUNIT_VERSIONS) + " - " + e.getClass()
+					+ ": " + e.getMessage());
 		}
 		return ero;
 	}

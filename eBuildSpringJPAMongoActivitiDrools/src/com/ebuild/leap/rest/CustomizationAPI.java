@@ -126,7 +126,8 @@ public class CustomizationAPI {
 	public EbuildleapResultObject createNewRevision(
 			@FormParam("currentHomeUnitRevisionId") Long currentHomeUnitRevisionId, 
 			@FormParam("newChildElementId") Long newChildElementId,
-			@FormParam("currentElementManifestId") Long currentElementManifestId)
+			@FormParam("currentElementManifestId") Long currentElementManifestId,
+			@FormParam("scopeILElementId") Long scopeILElementId)
 			throws JAXBException, IOException {
 		HomeUnitRevision homeUnitRevision = new HomeUnitRevision();
 		homeUnitRevision.setId(currentHomeUnitRevisionId);
@@ -134,7 +135,9 @@ public class CustomizationAPI {
 		newChildElement.setId(newChildElementId);
 		ElementManifest currentElementManifest = new ElementManifest();
 		currentElementManifest.setId(currentElementManifestId);
-		EbuildleapResultObject ero = customizationService.createNewRevision(homeUnitRevision,newChildElement,currentElementManifest);
+		Element ILElement = new Element();
+		ILElement.setId(scopeILElementId);
+		EbuildleapResultObject ero = customizationService.createNewRevision(homeUnitRevision,newChildElement,currentElementManifest,ILElement);
 		ero.setResult(null);
 		return ero;
 	}

@@ -16,5 +16,5 @@ public interface CustomizationServiceFacade {
 	public EbuildleapResultObject getHomeUnitVersions(HomeUnit homeUnit);
 	public EbuildleapResultObject getLatestHomeUnitRevision(HomeUnitVersion homeUnitVersion);
 	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision,
-			Element newChildElement, ElementManifest currentElementManifest);
+			Element newChildElement, ElementManifest currentElementManifest, Element ILElement);
 }

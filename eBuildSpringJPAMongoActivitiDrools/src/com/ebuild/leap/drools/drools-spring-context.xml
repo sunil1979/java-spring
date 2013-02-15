@@ -22,4 +22,22 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 			</map>
 		</constructor-arg>
 	</bean>
+
+	<bean id="finishPaletteKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
+		<description>Knowledgebase of compatible finishes</description>
+		<constructor-arg>
+			<map>
+				<entry key="com/ebuild/leap/drools/finish_lookup.xls" value="XLS" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="impactLinkKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
+		<description>Knowledgebase of types of Elements impacted in IL</description>
+		<constructor-arg>
+			<map>
+				<entry key="com/ebuild/leap/drools/impact_link.xls" value="XLS" />
+			</map>
+		</constructor-arg>
+	</bean>
 </beans>

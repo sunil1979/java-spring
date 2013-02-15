@@ -163,7 +163,9 @@ public class HomeUnitServiceTest extends AbstractTransactionalJUnit4SpringContex
 		currentElementManifest.setId(new Long("22495066518368775").longValue());
 		currentElementManifest.setParentElement(parentElement);
 		currentElementManifest.setChildElement(tobeReplacedElement);
-		EbuildleapResultObject ero = homeUnitService.createNewRevision(currentRevision, tobeReplacedElement,currentElementManifest);
+		Element ILElement = new Element();
+		ILElement.setId(new Long("123").longValue());
+		EbuildleapResultObject ero = homeUnitService.createNewRevision(currentRevision, tobeReplacedElement,currentElementManifest,ILElement);
 		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL)){
 			System.out.println("New Revision Created Successfully");
 			HomeUnitRevision newHURevision = (HomeUnitRevision) ero.getResult().get(0);

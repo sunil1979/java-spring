@@ -8,6 +8,10 @@ public interface EbuildleapConstants {
 	// DATASTORE CONTEXT
 	public static final String DATASTORE_RDBMS = "RDBMS";
 	public static final String DATASTORE_MONGO = "MONGO";
+	
+	//DROOLS RULES FILE TYPS
+	public static final String DROOLS_RULE_DRL = "DRL";
+	public static final String DROOLS_RULE_XLS = "XLS";
 
 	// SERVICE CALL RESULT
 	public static final String SERVICE_CALL_SUCCESSFUL = "SUCCESS";
