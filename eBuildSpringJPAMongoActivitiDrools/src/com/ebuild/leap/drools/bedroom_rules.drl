@@ -1,0 +1,227 @@
+package com.ebuild.leap.drools
+
+/*
+PRECONDITION :- 
+1. THE IL ELEMENT IS ALREADY IDENTIFIED TO BE BEDROOM
+2. BEDROOM FACT TYPE IS INSTANTIATED WITH ATTRIBUTES OF NEWLY CHANGED ELEMENT AND INSERTED INTO WORKING MEMORY
+*/
+
+//list any import classes here.
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import com.ebuild.leap.pojo.*;
+import com.ebuild.leap.util.*;
+import com.ebuild.leap.service.*;
+import com.ebuild.leap.drools.*;
+
+
+//declare any global variables here
+global DesignerServiceFacadeImpl designerService;
+global LookupPaletteUtil lookupPaletteUtil;
+global Element rootElement;
+
+//declare quasi object to track changes
+declare Bedroom
+	newElementId : Long
+	finishId : Long
+	themes : List
+	flooring : String
+end
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+
+rule "bedroom theme rule"
+dialect "java" 
+	when
+		$bedroom : Bedroom(themes != null && newElementId != null && $newElementId : newElementId && $bedroomThemes : themes)
+		$elementManifest : ElementManifest(childElement != null && childElement.id != $newElementId && $childElementThemes : childElement.elementThemes &&  childElement.finish != null && childElement.category != null && childElement.type != null 
+		&& childElement.category.id == 50 && childElement.type.id == 20)
+		$theme : Theme($bedroomThemes not contains id && eval(!containsItem($bedroomThemes,lookupPaletteUtil.lookupThemePalette(id)))) from $childElementThemes
+	then
+		System.out.println("Bedroom Theme Rule Conditions Met :");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		//System.out.println("Result :"+ero.getResultStatus());
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			//System.out.println("Result Size :"+ero.getResult().size());
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && containsItem1($bedroomThemes,variantElement.getElementThemes())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					$elementManifest.setChildElement(variantElement);
+					//$bedroom.setFinishId($elementManifest.getChildElement().getFinish().getId());
+					//$bedroom.setThemes($elementManifest.getChildElement().getElementThemes());
+					foundVariant = true;
+					update($elementManifest);
+					//update($bedroom);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}
+end
+
+rule "bedroom finish rule"
+dialect "java"
+	when
+		$bedroom : Bedroom(newElementId != null && $newElementId : newElementId && finishId != null)
+		$elementManifest : ElementManifest(childElement != null && childElement.finish != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId &&
+		lookupPaletteUtil.lookupFinishPalette($bedroom.finishId) not contains childElement.finish.id.intValue()  && (childElement.category.id == 40 || childElement.category.id == 50) && childElement.type.id == 20)
+	then 
+		System.out.println("Finish Rule Criteria Met :"+$elementManifest.getChildElement().getFinish().getId());
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		//System.out.println("Result :"+ero.getResultStatus());
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+		//System.out.println("Result Size :"+ero.getResult().size());
+		//System.out.println("$bedroom.getFinishId() :"+lookupPaletteUtil.lookupFinishPalette($bedroom.getFinishId()).contains(20));
+		Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && variantElement.getFinish() != null && lookupPaletteUtil.lookupFinishPalette($bedroom.getFinishId()).contains(variantElement.getFinish().getId().intValue())){
+				System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+				//System.out.println("Variant element finish id :"+variantElement.getFinish().getId());
+				$elementManifest.setChildElement(variantElement);
+				//$bedroom.setFinishId($elementManifest.getChildElement().getFinish().getId());
+					if($elementManifest.getChildElement().getElementThemes() != null){
+						//System.out.println("Setting new theme");
+						//$bedroom.setThemes(getIdList($elementManifest.getChildElement().getElementThemes()));
+					}
+				foundVariant = true;
+				update($elementManifest);
+				//update($bedroom);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}
+end
+
+
+rule "Sync flooring with cabintetry finish rule"
+	when
+		$bedroom : Bedroom(newElementId != null && $newElementId : newElementId && finishId != null && $finishId : finishId)
+		$elementManifest : ElementManifest(childElement != null && childElement.code1 != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.category.id == 40 && 
+		childElement.type.id == 50 && $code1 : childElement.code1 && eval(!stringContainsListItem($code1,lookupPaletteUtil.lookupFlooringforFinishPalette($finishId))))
+	then
+		System.out.println("Sync flooring with cabintetry finish MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		//System.out.println("Result :"+ero.getResultStatus());
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			//System.out.println("Result Size :"+ero.getResult().size());
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && variantElement.getCode1() != null && lookupPaletteUtil.lookupFlooringforFinishPalette($finishId).contains(variantElement.getCode1())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					//System.out.println("Variant element code1 :"+variantElement.getCode1());
+					$elementManifest.setChildElement(variantElement);
+					$bedroom.setFlooring(variantElement.getCode1());
+					foundVariant = true;
+					update($elementManifest);
+					update($bedroom);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}		
+end
+
+rule "Sync cabinetry finish with flooring rule"
+	when
+		$bedroom : Bedroom(newElementId != null && $newElementId : newElementId && flooring != null && $flooring : flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.finish != null && childElement.category != null && childElement.type != null  && childElement.id != $newElementId && (childElement.category.id == 40 || childElement.category.id == 50) && childElement.type.id == 20 &&
+		lookupPaletteUtil.lookupFinishforFlooringPalette($flooring) not contains childElement.finish.id.intValue())
+	then
+		System.out.println("Sync cabinetry finish with flooring rule MET :"+$elementManifest.getChildElement().getFinish().getId());
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		//System.out.println("Result :"+ero.getResultStatus());
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+		//System.out.println("Result Size :"+ero.getResult().size());
+		Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				//System.out.println("Lookup for Flooring :"+$flooring+" :"+lookupPaletteUtil.lookupFinishforFlooringPalette($flooring));
+				if(!foundVariant && variantElement.getFinish() != null && lookupPaletteUtil.lookupFinishforFlooringPalette($flooring).contains(variantElement.getFinish().getId().intValue())){
+				System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+				//System.out.println("Variant element finish id :"+variantElement.getFinish().getId());
+				$elementManifest.setChildElement(variantElement);
+				//$bedroom.setFinishId($elementManifest.getChildElement().getFinish().getId());
+				if($elementManifest.getChildElement().getElementThemes() != null){
+					//System.out.println("Setting new theme");
+					//$bedroom.setThemes(getIdList($elementManifest.getChildElement().getElementThemes()));
+				}
+				foundVariant = true;
+				update($elementManifest);
+				//update($bedroom);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}
+end
+
+function Boolean containsItem(List ListA, Set SetB){
+		//System.out.println("List A :" + ListA.toString());
+		//System.out.println("SetB :" + SetB.toString());
+		for (Object item1 : ListA) {
+			if (SetB.contains(((Long)item1).intValue())) {
+				//System.out.println("contains");
+				return true;
+			}
+		}
+		return false;
+	}
+
+function Boolean containsItem1(List ListA, List ListB){
+		System.out.println("List A :" + ListA.toString());
+		System.out.println("ListB :" + ListB.toString());
+		for (Object item1 : ListA) {
+			for (Object theme : ListB) {
+				System.out.println("Theme Id :"+((Theme)theme).getId());
+				if (((Theme)theme).getId().equals((Long)item1)) {
+					System.out.println("contains");
+					return true;
+				}
+			}
+		}
+		return false;
+}
+
+function Boolean stringContainsListItem(String str, Set setItems){
+	//System.out.println("Input String :"+str);
+	//System.out.println("Input List :"+setItems.toString());
+	for(Object strObj : setItems){
+		if(str.contains((String)strObj)){
+			//System.out.println("String contains list item :"+(String)strObj);
+			return true;
+		}
+	}
+	return false;
+}
+
+function List getIdList(List themeList){
+		List retList = new ArrayList();
+		for(Object theme : themeList){
+			retList.add(((Theme)theme).getId());
+		}
+		return retList;
+}

@@ -48,6 +48,7 @@
 	<bean name="randomIdGenerator" class="com.ebuild.leap.util.RandomIdGenerator" />
 	<bean name="eBuildleapPropertiesUtil" class="com.ebuild.leap.util.EbuildleapPropertiesUtil" />
 	<bean name="nullAwareBeanUtilsBean" class="com.ebuild.leap.util.NullAwareBeanUtilsBean" />
+	<bean name="lookupPaletteUtil" class="com.ebuild.leap.drools.LookupPaletteUtil" />
 	<bean name="eBuildleapUtil" class="com.ebuild.leap.util.EbuildleapUtil">
 		<property name="props">
 		<props>

@@ -122,7 +122,7 @@ public class HomeUnitVersion extends EbuildBaseObject {
 		this.homeUnit = homeUnit;
 	}
 
-	@OneToMany(mappedBy="homeUnitVersion",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="homeUnitVersion",cascade={CascadeType.PERSIST,CascadeType.MERGE})
 	@XmlTransient
 	public List<HomeUnitRevision> getHomeUnitRevisions() {
 		return homeUnitRevisions;

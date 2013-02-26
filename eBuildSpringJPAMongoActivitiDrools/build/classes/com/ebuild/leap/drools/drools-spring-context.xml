@@ -15,7 +15,8 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 
 	<bean id="flattenTreeRulesKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
 		<description>Knowledgebase for flattening a given tree containing
-			elements connected by elementmanifest</description>
+			elements connected by elementmanifest
+		</description>
 		<constructor-arg>
 			<map>
 				<entry key="com/ebuild/leap/drools/flatten_tree.drl" value="DRL" />
@@ -27,13 +28,49 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 		<description>Knowledgebase of compatible finishes</description>
 		<constructor-arg>
 			<map>
-				<entry key="com/ebuild/leap/drools/finish_lookup.xls" value="XLS" />
+				<entry key="com/ebuild/leap/drools/finish_finish_lookup.xls"
+					value="XLS" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="themePaletteKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
+		<description>Knowledgebase of compatible themes</description>
+		<constructor-arg>
+			<map>
+				<entry key="com/ebuild/leap/drools/theme_theme_lookup.xls"
+					value="XLS" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+
+	<bean id="finishFlooringPaletteKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
+		<description>Knowledgebase of compatible flooring for finish values
+		</description>
+		<constructor-arg>
+			<map>
+				<entry key="com/ebuild/leap/drools/finish_flooring_lookup.xls"
+					value="XLS" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+
+	<bean id="flooringFinishPaletteKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
+		<description>Knowledgebase of compatible finish for flooring values
+		</description>
+		<constructor-arg>
+			<map>
+				<entry key="com/ebuild/leap/drools/flooring_finish_lookup.xls"
+					value="XLS" />
 			</map>
 		</constructor-arg>
 	</bean>
 
 	<bean id="impactLinkKnowledge" class="com.ebuild.leap.drools.KnowledgeFactoryBean">
-		<description>Knowledgebase of types of Elements impacted in IL</description>
+		<description>Knowledgebase of types of Elements impacted in IL
+		</description>
 		<constructor-arg>
 			<map>
 				<entry key="com/ebuild/leap/drools/impact_link.xls" value="XLS" />

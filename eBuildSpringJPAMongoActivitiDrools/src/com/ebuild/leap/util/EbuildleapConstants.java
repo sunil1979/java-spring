@@ -4,6 +4,12 @@ public interface EbuildleapConstants {
 
 	// PROPERTIES FILE NAMES
 	public static final String EBUILDLEAP_PROPERTIES_FILE = "ebuildleap.properties";
+	
+	//ELEMENT - CATEGORY, TYPE AND SUBTYPE
+	public static final Long UNIT_ELEMENT_CATEGORY = 40L;
+	public static final Long SET_ELEMENT_CATEGORY1 = 50L;
+	public static final Long FDC_ELEMENT_TYPE = 50L;
+	public static final Long CAB_ELEMENT_TYPE = 20L;
 
 	// DATASTORE CONTEXT
 	public static final String DATASTORE_RDBMS = "RDBMS";

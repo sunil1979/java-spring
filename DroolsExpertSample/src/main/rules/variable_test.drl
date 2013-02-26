@@ -1,0 +1,26 @@
+//created on: 19 Feb, 2013
+package com.sample
+
+//list any import classes here.
+
+
+
+//declare any global variables here
+global Boolean var;
+
+rule "Your First Rule"
+salience 1
+dialect "java" 
+    when
+        u : User()
+    then
+        var = true;
+end
+
+rule "Your Second Rule"
+dialect "java" 
+    when
+        eval(var == true)
+    then
+        System.out.println("Variable lookup successful");
+end

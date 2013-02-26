@@ -1,8 +1,10 @@
 package com.ebuild.leap.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -14,7 +16,9 @@ import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ebuild.leap.drools.LookupPaletteUtil;
 import com.ebuild.leap.pojo.Brand;
 import com.ebuild.leap.pojo.CPR;
 import com.ebuild.leap.pojo.Category;
@@ -43,6 +47,9 @@ public class EbuildleapUtil {
 	private String smtpUserName;
 	private String smtpPassword;
 	private String mailFrom;
+
+	@Autowired
+	private LookupPaletteUtil lookupPaletteUtil;
 
 	public EbuildleapUtil() {
 	}

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
@@ -18,9 +19,10 @@ import org.slf4j.LoggerFactory;
 public class RandomIdGenerator implements IdentifierGenerator, Configurable {
 
 	protected static Logger log = LoggerFactory.getLogger(RandomIdGenerator.class);
-	private long server_id = 0;
+	private long server_id = 1;
 	private long servier_startup_time_in_seconds = new Date().getTime() / 1000;
-	private long incremented_variable = 0;
+
+	private static final AtomicInteger counter = new AtomicInteger();
 
 	@Override
 	public void configure(Type arg0, Properties arg1, Dialect arg2) throws MappingException {
@@ -30,7 +32,9 @@ public class RandomIdGenerator implements IdentifierGenerator, Configurable {
 
 	@Override
 	public Serializable generate(SessionImplementor arg0, Object arg1) throws HibernateException {
-		return getUniqueID();
+		synchronized (this) {
+			return getUniqueID();
+		}
 	}
 
 	public String getUUID() {
@@ -40,16 +44,18 @@ public class RandomIdGenerator implements IdentifierGenerator, Configurable {
 	}
 
 	/*
-	 * Implementation of mysql SHORT_UUID() function
-	 * (server_id & 255) << 56 + (server_startup_time_in_seconds << 24) +
-	 * incremented_variable++;
+	 * Implementation of mysql SHORT_UUID() function (server_id & 255) << 56 +
+	 * (server_startup_time_in_seconds << 24) + incremented_variable++;
 	 */
 
 	public Long getUniqueID() {
-		long uuid = server_id & 255;
-		uuid = uuid << 56;
-		long time_seed = servier_startup_time_in_seconds << 24;
-		uuid = uuid + time_seed + incremented_variable++;
-		return uuid;
+		synchronized (this) {
+			long uuid = server_id & 255;
+			uuid = uuid << 56;
+			long time_seed = servier_startup_time_in_seconds << 24;
+			uuid = uuid + time_seed + counter.getAndIncrement();
+			log.debug("NEW UID GENERATED :" + uuid);
+			return uuid;
+		}
 	}
 }

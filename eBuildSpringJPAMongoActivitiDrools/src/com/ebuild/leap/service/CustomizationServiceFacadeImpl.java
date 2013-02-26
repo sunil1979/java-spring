@@ -1,11 +1,23 @@
 package com.ebuild.leap.service;
 
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
+import org.azeckoski.reflectutils.ReflectUtils;
 import org.drools.KnowledgeBase;
+import org.drools.KnowledgeBaseFactory;
+import org.drools.builder.DecisionTableConfiguration;
+import org.drools.builder.DecisionTableInputType;
+import org.drools.builder.KnowledgeBuilder;
+import org.drools.builder.KnowledgeBuilderFactory;
+import org.drools.builder.ResourceType;
+import org.drools.definition.type.FactType;
+import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +29,7 @@ import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ebuild.leap.drools.KnowledgeFactoryBean;
+import com.ebuild.leap.drools.LookupPaletteUtil;
 import com.ebuild.leap.pojo.Category;
 import com.ebuild.leap.pojo.CostVersion;
 import com.ebuild.leap.pojo.EbuildleapResultObject;
@@ -26,7 +39,9 @@ import com.ebuild.leap.pojo.HomeUnit;
 import com.ebuild.leap.pojo.HomeUnitRevision;
 import com.ebuild.leap.pojo.HomeUnitVersion;
 import com.ebuild.leap.pojo.Product;
+import com.ebuild.leap.pojo.Rule;
 import com.ebuild.leap.pojo.SubType;
+import com.ebuild.leap.pojo.Theme;
 import com.ebuild.leap.pojo.Type;
 import com.ebuild.leap.pojo.User;
 import com.ebuild.leap.repository.jpa.CostVersionRepository;
@@ -35,10 +50,12 @@ import com.ebuild.leap.repository.jpa.HomeUnitRepository;
 import com.ebuild.leap.repository.jpa.HomeUnitRevisionRepository;
 import com.ebuild.leap.repository.jpa.HomeUnitVersionRepository;
 import com.ebuild.leap.repository.jpa.ProductRepository;
+import com.ebuild.leap.repository.jpa.RuleRepository;
 import com.ebuild.leap.repository.jpa.UserRepository;
 import com.ebuild.leap.repository.mongodb.ElementManifestMongoRepository;
 import com.ebuild.leap.repository.mongodb.ElementMongoRepository;
 import com.ebuild.leap.repository.mongodb.HomeUnitRevisionMongoRepository;
+import com.ebuild.leap.repository.mongodb.ProductMongoRepository;
 import com.ebuild.leap.util.EbuildleapConstants;
 import com.ebuild.leap.util.EbuildleapPropertiesUtil;
 
@@ -48,44 +65,61 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 
 	protected static Logger log = LoggerFactory.getLogger(CustomizationServiceFacadeImpl.class);
 	private EbuildleapResultObject ero = new EbuildleapResultObject();
+	private Element rootElement = null;
+	private Long finishId;
+	private Long newElementId;
+	private String flooring;
+	private List<Object> themes = new ArrayList<Object>();
 
 	@Autowired
-	EbuildleapPropertiesUtil ebuildLeapPropertiesUtil;
+	private RuleRepository ruleRepository;
 
 	@Autowired
-	UserRepository userRepository;
+	private EbuildleapPropertiesUtil ebuildLeapPropertiesUtil;
 
 	@Autowired
-	ProductRepository productRepository;
+	private UserRepository userRepository;
 
 	@Autowired
-	ElementRepository elementRepository;
+	private ProductRepository productRepository;
 
 	@Autowired
-	ElementMongoRepository elementMongoRepository;
+	private ProductMongoRepository productMongoRepository;
 
 	@Autowired
-	CostVersionRepository costVersionRepository;
+	private ElementRepository elementRepository;
 
 	@Autowired
-	HomeUnitRepository homeUnitRepository;
+	private ElementMongoRepository elementMongoRepository;
 
 	@Autowired
-	HomeUnitRevisionRepository homeUnitRevisionRepository;
+	private CostVersionRepository costVersionRepository;
 
 	@Autowired
-	HomeUnitVersionRepository homeUnitVersionRepository;
+	private HomeUnitRepository homeUnitRepository;
 
 	@Autowired
-	HomeUnitRevisionMongoRepository homeUnitRevisionMongoRepository;
+	private HomeUnitRevisionRepository homeUnitRevisionRepository;
+
+	@Autowired
+	private HomeUnitVersionRepository homeUnitVersionRepository;
+
+	@Autowired
+	private HomeUnitRevisionMongoRepository homeUnitRevisionMongoRepository;
+
+	@Autowired
+	private DesignerServiceFacadeImpl designerService;
+
+	@Autowired
+	private LookupPaletteUtil lookupPaletteUtil;
 
 	@Autowired
 	@Qualifier("bathroomRulesKnowledge")
-	KnowledgeFactoryBean bathroomRulesKnowledge;
+	private KnowledgeFactoryBean bathroomRulesKnowledge;
 
 	@Autowired
 	@Qualifier("flattenTreeRulesKnowledge")
-	KnowledgeFactoryBean flattenTreeRulesKnowledge;
+	private KnowledgeFactoryBean flattenTreeRulesKnowledge;
 
 	@Autowired
 	@Qualifier("finishPaletteKnowledge")
@@ -124,12 +158,14 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + user.getId());
 			}
+			Product producMongoData = productMongoRepository.findOne(product.getId());
 			Product productData = productRepository.findOne(product.getId());
 			if (productData == null) {
 				// Product not found in RDBMS - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + product.getId());
 			}
+
 			CostVersion costVersionData = costVersionRepository.findOne(costVersion.getId());
 			if (costVersionData == null) {
 				// CostVersion not found in RDBMS - throw exception
@@ -148,18 +184,25 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			homeUnit.setName(product.getName() + "_" + user.getUsername());
 			HomeUnitVersion defaultVersion = new HomeUnitVersion();
 			defaultVersion.setVersionNumber(EbuildleapConstants.DEFAULT_HOMEUNIT_VERSION_NUMBER);
-			defaultVersion.setVersionTag(EbuildleapConstants.DEFAULT_HOMEUNIT_REVISIONTAG);
+			defaultVersion.setVersionTag(EbuildleapConstants.DEFAULT_HOMEUNIT_VERSIONTAG);
 			HomeUnitRevision defaultRevision = new HomeUnitRevision();
 			defaultRevision.setRevisionNumber(EbuildleapConstants.DEFAULT_HOMEUNIT_REVISION_NUMBER);
 			defaultRevision.setRevisionTag(EbuildleapConstants.DEFAULT_HOMEUNIT_REVISIONTAG);
 			defaultVersion.addHomeUnitRevision(defaultRevision);
 			homeUnit.addHomeUnitVersion(defaultVersion);
-			homeUnit = homeUnitRepository.saveAndFlush(homeUnit);
+			System.out.println("BEFORE VERSION ID :" + defaultVersion.getId());
+			System.out.println("BEFORE REVISION ID :" + defaultRevision.getId());
+			homeUnit = homeUnitRepository.save(homeUnit);
+			System.out.println("AFTER VERSION ID :" + defaultVersion.getId());
+			System.out.println("AFTER REVISION ID :" + defaultRevision.getId());
 			log.debug("Home Unit Id :" + homeUnit.getId());
 			HomeUnitRevision latestRevision = homeUnit.getHomeUnitVersions().get(0).getHomeUnitRevisions().get(0);
 			/*
 			 * STEP 3:- Save HomeUnit Revision in Mongo
 			 */
+			if (producMongoData != null) {
+				latestRevision.getHomeUnitVersion().getHomeUnit().setProduct(producMongoData);
+			}
 			HomeUnitRevision mongoLatestRevision = homeUnitRevisionMongoRepository.save(latestRevision);
 			ArrayList<HomeUnitRevision> result = new ArrayList<HomeUnitRevision>();
 			result.add(mongoLatestRevision);
@@ -201,8 +244,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			 * STEP 1:- Pick the latest HomeUnit Revision for the HomeUnit
 			 * Version
 			 */
-			Long latestRevisionId = homeUnitRevisionRepository.getLatestRevisionId(homeUnitVersion.getId());
-			if (latestRevisionId == null) {
+			HomeUnitRevision latestRevision = homeUnitRevisionRepository.getLatestRevisionId(homeUnitVersion.getId());
+			if (latestRevision == null) {
 				// NO REVISIONS FOR THE VERSION. SET ERROR and RETURN
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.NO_REVISION_FOUND_FOR_VERSION)
 						+ " - " + homeUnitVersion.getId());
@@ -210,11 +253,11 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * STEP 2:- Pick the Home Unit Revision from NOSQL DB
 			 */
-			HomeUnitRevision mongoLatestRevision = homeUnitRevisionMongoRepository.findOne(latestRevisionId);
+			HomeUnitRevision mongoLatestRevision = homeUnitRevisionMongoRepository.findOne(latestRevision.getId());
 			if (mongoLatestRevision == null) {
 				// Revision not found in MONGO - throw exception
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
-						+ " - " + latestRevisionId);
+						+ " - " + latestRevision.getId());
 			}
 			ArrayList<HomeUnitRevision> result = new ArrayList<HomeUnitRevision>();
 			result.add(mongoLatestRevision);
@@ -255,6 +298,11 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENTMANIFEST_ID));
 			}
 
+			if (ILElement == null || ILElement.getId() == null) {
+				// throw exception
+				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENT_ID));
+			}
+
 			/*
 			 * STEP 1:- Create new HomeUnitRevision in RDBMS and retrieve new
 			 * HomeUnitRevision ID
@@ -273,6 +321,13 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			} else if (elementMongoRepository.exists(newChildElementData.getId())) {
 				newChildElementData = elementMongoRepository.findOne(newChildElementData.getId());
 			}
+
+			Element ILElementData = elementRepository.findOne(ILElement.getId());
+			if (ILElementData == null) {
+				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
+						+ " - " + ILElement.getId());
+			}
+
 			HomeUnitVersion homeUnitVersion = currentHomeUnitRevisionData.getHomeUnitVersion();
 
 			HomeUnitRevision newRevision = new HomeUnitRevision();
@@ -297,7 +352,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			 */
 			KnowledgeBase kbase = (KnowledgeBase) flattenTreeRulesKnowledge.getObject();
 			StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-			ArrayList<Object> treeObjects = new ArrayList<Object>();
+			List<Object> treeObjects = new ArrayList<Object>();
 			ksession.setGlobal("treeObjects", treeObjects);
 			ksession.insert(newMongoHomeUnitRevision.getHomeUnitVersion().getHomeUnit().getProduct().getElement());
 			ksession.fireAllRules();
@@ -315,7 +370,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * APPLY RULES
 			 */
-			newMongoHomeUnitRevision = applyFinishRules(newMongoHomeUnitRevision, ILElement, newChildElementData);
+			treeObjects = applyRules(treeObjects, newChildElementData, ILElementData);
+
 			/*
 			 * Save New Revision to Mongo Repository
 			 */
@@ -335,65 +391,119 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 		return ero;
 	}
 
-	private HomeUnitRevision applyFinishRules(HomeUnitRevision newMongoHomeUnitRevision, Element ILElement, Element newChildElementData)
-			throws Exception {
-		/*
-		 * Lookup for compatible finish values
-		 */
-		KnowledgeBase kbase = (KnowledgeBase) finishPaletteKnowledge.getObject();
-		StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-		List<Integer> compatibleList = new ArrayList<Integer>();
-		ksession.setGlobal("compatibleList", compatibleList);
-		ksession.setGlobal("currentFinish", newChildElementData.getFinish().getId());
-		ksession.fireAllRules();
-		ksession.dispose();
-		System.out.println("Compatible List Size :" + compatibleList.size());
-		for (Integer entry : compatibleList) {
-			System.out.println("List Entry :" + entry);
+	private List<Object> applyRules(List<Object> treeObjects, Element newChildElementData, Element ILElementData) throws Exception {
+		List<Rule> rules = ruleRepository.getRuleBywatchObjectAndWatchCategoryAndWatchSubType(Element.class.toString(), ILElementData.getCategory(),
+				ILElementData.getSubType());
+		for (Object o : treeObjects) {
+			if (o instanceof Element && ((Element) o).getId().equals(ILElementData.getId())) {
+				rootElement = (Element) o;
+			}
 		}
-
-		/*
-		 * Identify types and categories of elements that need to be verified
-		 * with in IL
-		 */
-		kbase = (KnowledgeBase) impactLinkKnowledge.getObject();
-		ksession = kbase.newStatefulKnowledgeSession();
-		Set<Integer> categoryCriteriaList = new HashSet<Integer>();
-		Set<Integer> typeCriteriaList = new HashSet<Integer>();
-		ksession.setGlobal("categoryCriteriaList", categoryCriteriaList);
-		ksession.setGlobal("typeCriteriaList", typeCriteriaList);
-		ksession.setGlobal("rootElement", ILElement);
-		ksession.setGlobal("changedElement", newChildElementData);
-		ksession.fireAllRules();
-		ksession.dispose();
-		System.out.println("categoryCriteriaList List Size :" + categoryCriteriaList.size());
-		for (Integer entry : categoryCriteriaList) {
-			System.out.println("List Entry :" + entry);
+		
+		newElementId = newChildElementData.getId();
+		
+		if (newChildElementData.getCategory() != null
+				&& newChildElementData.getType() != null
+				&& (newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY) || newChildElementData.getCategory()
+						.getId().equals(EbuildleapConstants.SET_ELEMENT_CATEGORY1))
+				&& newChildElementData.getType().getId().equals(EbuildleapConstants.CAB_ELEMENT_TYPE) && newChildElementData.getFinish() != null) {
+			finishId = newChildElementData.getFinish().getId();
 		}
-		System.out.println("typeCriteriaList List Size :" + typeCriteriaList.size());
-		for (Integer entry : typeCriteriaList) {
-			System.out.println("List Entry :" + entry);
+		if (newChildElementData.getCategory() != null
+				&& newChildElementData.getType() != null
+				&& (newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY) || newChildElementData.getCategory()
+						.getId().equals(EbuildleapConstants.SET_ELEMENT_CATEGORY1))
+				&& newChildElementData.getType().getId().equals(EbuildleapConstants.CAB_ELEMENT_TYPE)
+				&& newChildElementData.getElementThemes() != null) {
+			for (Theme theme : newChildElementData.getElementThemes()) {
+				themes.add(theme.getId());
+			}
 		}
-
-		return null;
+		if (newChildElementData.getCategory() != null && newChildElementData.getType() != null
+				&& newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY)
+				&& newChildElementData.getType().getId().equals(EbuildleapConstants.FDC_ELEMENT_TYPE)) {
+			flooring = newChildElementData.getCode1();
+		}
+		for (Rule rule : rules) {
+			System.out.println("Applying Rule :" + rule.getRuleName());
+			KnowledgeBase kbase = createKnowledgeBase(rule.getRuleFile(), rule.getRuleFileType());
+			StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
+			StringTokenizer st = new StringTokenizer(rule.getRuleTriggerFact(), "|");
+			String triggerFactPackage = st.nextToken();
+			String triggerFactName = st.nextToken();
+			FactType triggerFact = kbase.getFactType(triggerFactPackage, triggerFactName);
+			Object triggerFactInstance = triggerFact.newInstance();
+			triggerFactInstance = setTriggerFactInstanceParams(triggerFact, triggerFactInstance, rule.getRuleTriggerFactParams());
+			ksession = setSessionVariables(ksession, rule.getRuleParams());
+			ksession.insert(triggerFactInstance);
+			ksession.insert(rootElement);
+			ksession.fireAllRules();
+			ksession.dispose();
+		}
+		return treeObjects;
 	}
 
-	private HomeUnitRevision applyBathroomRules(HomeUnitRevision newMongoHomeUnitRevision) throws Exception {
-		/*
-		 * STEP 1:- Retrieve all the BATHROOM IL node elements
-		 */
-		List<Element> nodeList = new ArrayList<Element>();
-		/*
-		 * STEP 2:- For each BATHROOM IL nodel elements, apply BATHROOM related
-		 * rules
-		 */
-		for (Element bathroomILElement : nodeList) {
-			KnowledgeBase bathroomKnowledgeBase = (KnowledgeBase) bathroomRulesKnowledge.getObject();
-			StatefulKnowledgeSession bathroomKnowledgeSession = bathroomKnowledgeBase.newStatefulKnowledgeSession();
-			bathroomKnowledgeSession.insert(bathroomILElement);
-			bathroomKnowledgeSession.fireAllRules();
+	private KnowledgeBase createKnowledgeBase(String ruleFile, String ruleFileType) throws Exception {
+		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+		if (ruleFileType.equalsIgnoreCase(EbuildleapConstants.DROOLS_RULE_DRL)) {
+			builder.add(ResourceFactory.newClassPathResource(ruleFile), ResourceType.DRL);
 		}
-		return newMongoHomeUnitRevision;
+		if (ruleFileType.equalsIgnoreCase(EbuildleapConstants.DROOLS_RULE_XLS)) {
+			DecisionTableConfiguration config = KnowledgeBuilderFactory.newDecisionTableConfiguration();
+			config.setInputType(DecisionTableInputType.XLS);
+			builder.add(ResourceFactory.newClassPathResource(ruleFile), ResourceType.DTABLE, config);
+		}
+
+		if (builder.hasErrors()) {
+			throw new RuntimeException(builder.getErrors().toString());
+		}
+		KnowledgeBase knowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
+		knowledgeBase.addKnowledgePackages(builder.getKnowledgePackages());
+		return knowledgeBase;
+	}
+
+	private Object setTriggerFactInstanceParams(FactType triggerFact, Object triggerFactInstance, String triggerFactInstanceParams) throws Exception {
+		StringTokenizer st = new StringTokenizer(triggerFactInstanceParams, "|");
+		while (st.hasMoreTokens()) {
+			StringTokenizer st1 = new StringTokenizer(st.nextToken(), ",");
+			String paramName = st1.nextToken();
+			String paramValue = st1.nextToken();
+			Object o = null;
+			if (paramValue.equalsIgnoreCase("EXIST")) {
+				Field f = getClass().getDeclaredField(paramName);
+				System.out.println(f.get(this));
+				o = f.get(this);
+			}
+			triggerFact.set(triggerFactInstance, paramName, o);
+		}
+		return triggerFactInstance;
+	}
+
+	private StatefulKnowledgeSession setSessionVariables(StatefulKnowledgeSession session, String params) throws Exception {
+		StringTokenizer st = new StringTokenizer(params, "|");
+		while (st.hasMoreTokens()) {
+			StringTokenizer st1 = new StringTokenizer(st.nextToken(), ",");
+			while (st1.hasMoreTokens()) {
+				String globalVariableName = st1.nextToken();
+				String globalVariableType = st1.nextToken();
+				if (globalVariableType != null && globalVariableType.length() > 0) {
+					Object o = null;
+					if (globalVariableType.equalsIgnoreCase("ArrayList")) {
+						o = ReflectUtils.getInstance().constructClass(ArrayList.class);
+					}
+					if (globalVariableType.equalsIgnoreCase("HashSet")) {
+						o = ReflectUtils.getInstance().constructClass(HashSet.class);
+					}
+					if (globalVariableType.equalsIgnoreCase("EXIST")) {
+						Field f = getClass().getDeclaredField(globalVariableName);
+						System.out.println(f.get(this));
+						o = f.get(this);
+					}
+					session.setGlobal(globalVariableName, o);
+				}
+			}
+		}
+		return session;
 	}
 
 	@Override

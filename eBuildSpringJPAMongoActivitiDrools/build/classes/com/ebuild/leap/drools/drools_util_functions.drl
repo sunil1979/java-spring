@@ -1,0 +1,34 @@
+//created on: 22 Feb, 2013
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import java.util.Set;
+import java.util.List;
+
+
+function Boolean containsItem1(ListA, SetB){
+		System.out.println("List A :" + ListA.toString());
+		System.out.println("ListB :" + ListB.toString());
+		for (Long item1 : ListA) {
+			for (Theme theme : ListB) {
+				System.out.println("Theme Id :"+theme.getId());
+				if (theme.getId().equals(item1)) {
+					System.out.println("contains");
+					return true;
+				}
+			}
+		}
+		return false;
+}
+
+function Boolean containsItem(List ListA, Set SetB){
+		System.out.println("List A :" + ListA.toString());
+		System.out.println("SetB :" + SetB.toString());
+		for (Long item1 : ListA) {
+			if (SetB.contains(item1.intValue())) {
+				System.out.println("contains");
+				return true;
+			}
+		}
+		return false;
+	}

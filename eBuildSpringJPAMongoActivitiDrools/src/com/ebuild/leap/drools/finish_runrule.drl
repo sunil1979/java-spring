@@ -1,0 +1,53 @@
+package com.ebuild.leap.drools
+
+//list any import classes here.
+import java.util.Set;
+import com.ebuild.leap.pojo.*;
+import com.ebuild.leap.util.*;
+import com.ebuild.leap.service.*;
+
+//declare any global variables here
+global DesignerServiceFacadeImpl designerService;
+global Element oldElement;
+global Element newElement;
+global Element rootElement;
+
+
+
+
+rule "For Every Element Insert ElementManifest"
+    when
+        $element : Element()
+        $elementManifest : ElementManifest() from $element.elementManifestList
+    then      
+		insert($elementManifest);
+end
+
+rule "For Every ElementManifest Insert Element"
+    when
+        $elementManifest : ElementManifest()
+    then
+        insert($elementManifest.getChildElement());
+end
+
+rule "bedroom finish rule - driven by new element"
+no-loop 
+dialect "java"
+	when
+		eval(newElement.getFinish().getId() != oldElement.getFinish().getId() && (newElement.getCategory().getId() == 40 || newElement.getCategory().getId() == 50))
+		$elementManifest : ElementManifest($childElementData : childElement != null && childElement.finish != null && childElement.category != null && childElement.type != null &&
+		childElement.finish.id != newElement.getFinish().getId() && (childElement.category.id == 40 || childElement.category.id == 50) && childElement.type.id == 20)
+	then 
+		System.out.println("Finish Rule Criteria Met :"+$childElementData);
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		System.out.println("Result :"+ero.getResultStatus());
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(variantElement.getFinish() != null && variantElement.getFinish().getId() == newElement.getFinish().getId() && variantElement.getCode2().equalsIgnoreCase($childElementData.getCode2())){
+					$elementManifest.setChildElement(variantElement);
+				}
+			}
+		}
+		update($elementManifest);
+end
