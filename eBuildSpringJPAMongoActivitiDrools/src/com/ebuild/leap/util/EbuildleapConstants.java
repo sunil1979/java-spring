@@ -7,7 +7,7 @@ public interface EbuildleapConstants {
 	
 	//ELEMENT - CATEGORY, TYPE AND SUBTYPE
 	public static final Long UNIT_ELEMENT_CATEGORY = 40L;
-	public static final Long SET_ELEMENT_CATEGORY1 = 50L;
+	public static final Long SET_ELEMENT_CATEGORY = 50L;
 	public static final Long FDC_ELEMENT_TYPE = 50L;
 	public static final Long CAB_ELEMENT_TYPE = 20L;
 
@@ -162,5 +162,8 @@ public interface EbuildleapConstants {
 	public static final Integer DEFAULT_HOMEUNIT_REVISION_NUMBER = 1;
 	public static final String DEFAULT_HOMEUNIT_REVISIONTAG = "DEFAULT REVISION TAG";
 	public static final String AUTO_NEW_HOMEUNIT_REVISIONTAG = "INTERMEDIATE REVISION AUTO CREATED FOR VERSION :";
+	
+	//LOOKUP FOLDER KEY
+	public static final String LOOKUP_FOLDER = "LOOKUP_FOLDER";
 
 }

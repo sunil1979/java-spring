@@ -72,5 +72,17 @@ public class LookupPaletteUtil {
 		ksession.dispose();
 		return compatibleList;
 	}
+	
+	public Set<Object> lookupFlooringforFinishinKitchenPalette(String currentFinish) throws Exception {
+		KnowledgeBase kbase = (KnowledgeBase) flooringFinishPaletteKnowledge.getObject();
+		StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
+		Set<Object> compatibleList = new HashSet<Object>();
+		ksession.setGlobal("compatibleList", compatibleList);
+		ksession.setGlobal("currentFinish", currentFinish);
+		ksession.fireAllRules();
+		ksession.dispose();
+		return compatibleList;
+	}
+	
 
 }

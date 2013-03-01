@@ -69,6 +69,7 @@ public class Element extends EbuildBaseObject {
 	private Product product;
 	private ElementVariantList elementVariantList;
 	private SubType subType;
+	private SubCategory subCategory;
 
 	@Id
 	@Column(name = "element_id")
@@ -379,5 +380,14 @@ public class Element extends EbuildBaseObject {
 
 	public void setSubType(SubType subType) {
 		this.subType = subType;
+	}
+
+	@ManyToOne
+	public SubCategory getSubCategory() {
+		return subCategory;
+	}
+
+	public void setSubCategory(SubCategory subCategory) {
+		this.subCategory = subCategory;
 	}
 }

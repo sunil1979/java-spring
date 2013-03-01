@@ -44,22 +44,27 @@
 
 	<bean id="defaultLobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" />
 
-	
+
+	<bean name="lookupPalette" class="com.ebuild.leap.drools.LookupPalette">
+		<constructor-arg>
+			<ref bean="eBuildleapPropertiesUtil" />
+		</constructor-arg>
+	</bean>
 	<bean name="randomIdGenerator" class="com.ebuild.leap.util.RandomIdGenerator" />
 	<bean name="eBuildleapPropertiesUtil" class="com.ebuild.leap.util.EbuildleapPropertiesUtil" />
 	<bean name="nullAwareBeanUtilsBean" class="com.ebuild.leap.util.NullAwareBeanUtilsBean" />
 	<bean name="lookupPaletteUtil" class="com.ebuild.leap.drools.LookupPaletteUtil" />
 	<bean name="eBuildleapUtil" class="com.ebuild.leap.util.EbuildleapUtil">
 		<property name="props">
-		<props>
-			<prop key="mail.smtp.auth">true</prop>
-			<prop key="mail.smtp.starttls.enable">true</prop>
-			<prop key="mail.smtp.host">${smtpHost}</prop>
-			<prop key="mail.smtp.port">${smtpPort}</prop>
-		</props>
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.host">${smtpHost}</prop>
+				<prop key="mail.smtp.port">${smtpPort}</prop>
+			</props>
 		</property>
-		<property name="smtpUserName" value="${smtpUserName}"/>
-		<property name="smtpPassword" value="${smtpPassword}"/>
-		<property name="mailFrom" value="${mailFrom}"/>
+		<property name="smtpUserName" value="${smtpUserName}" />
+		<property name="smtpPassword" value="${smtpPassword}" />
+		<property name="mailFrom" value="${mailFrom}" />
 	</bean>
 </beans>

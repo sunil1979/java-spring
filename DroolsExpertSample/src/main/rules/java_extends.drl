@@ -1,0 +1,16 @@
+//created on: 28 Feb, 2013
+package com.sample
+
+//list any import classes here.
+import com.sample.Task;
+
+
+//declare any global variables here
+
+declare Task
+	
+end
+
+declare SubTask extends Task
+	
+end

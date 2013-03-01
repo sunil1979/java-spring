@@ -46,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 
 import com.ebuild.leap.drools.KnowledgeFactoryBean;
+import com.ebuild.leap.drools.LookupPalette;
 import com.ebuild.leap.drools.LookupPaletteUtil;
 import com.ebuild.leap.pojo.Category;
 import com.ebuild.leap.pojo.EbuildleapResultObject;
@@ -127,31 +128,39 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 	private String flooring;
 	private List<Long> themes = new ArrayList<Long>();
 
+	@Autowired
+	private LookupPalette lookupPalette;
+
 	public void loadSpring() throws Exception {
 
+	}
+
+	
+	public void testLookupPalette() throws Exception {
+		System.out.println("lookup result :" + lookupPalette.getValues("bedroom_theme_theme_lookup.properties", "102"));
 	}
 
 	@Test
 	public void createNewRevision() throws Exception {
 		try {
 			HomeUnitRevision currentHomeUnitRevision = new HomeUnitRevision();
-			currentHomeUnitRevision.setId(new Long("94906032781787136").longValue());
+			currentHomeUnitRevision.setId(new Long("94909035299471360").longValue());
 			Element newChildElement = new Element();
 			newChildElement.setId(new Long("22631637519183755").longValue());
 			ElementManifest currentElementManifest = new ElementManifest();
-			currentElementManifest.setId(new Long("94904324961861633").longValue());
+			currentElementManifest.setId(new Long("94908959768444929").longValue());
 			Element ILElement = new Element();
 			ILElement.setId(new Long("94897517103153153").longValue());
-			EbuildleapResultObject ero = customizationService.createNewRevision(currentHomeUnitRevision, newChildElement, currentElementManifest, ILElement);
-			System.out.println("Result Status :"+ero.getResultStatus());
+			EbuildleapResultObject ero = customizationService.createNewRevision(currentHomeUnitRevision, newChildElement, currentElementManifest,
+					ILElement);
+			System.out.println("Result Status :" + ero.getResultStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	
 	public void testLookupUtil() throws Exception {
-		
+
 		Set<Object> lookUpResult = lookupPaletteUtil.lookupFinishforFlooringPalette("FL83");
 		System.out.println("lookUpResult length :" + lookUpResult.size());
 		for (Object entry : lookUpResult) {
@@ -168,13 +177,13 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 		bedroomRule.setRuleName("Bedroom IL rules");
 		bedroomRule.setRuleDescription("Bedroom IL rules");
 		bedroomRule.setRuleFileType(EbuildleapConstants.DROOLS_RULE_DRL);
-		bedroomRule.setRuleParams("designerService,EXIST|lookupPaletteUtil,EXIST|rootElement,EXIST");
+		bedroomRule.setRuleParams("designerService,EXIST|lookupPalette,EXIST|rootElement,EXIST|newChildElementData,EXIST");
 		Category watchCategory = categoryRepository.findOne(new Long("60").longValue());
 		bedroomRule.setWatchCategory(watchCategory);
 		SubType watchSubType = subTypeRepository.findOne(new Long("10").longValue());
 		bedroomRule.setWatchSubType(watchSubType);
-		bedroomRule.setRuleTriggerFact("com.ebuild.leap.drools|Bedroom");
-		bedroomRule.setRuleTriggerFactParams("newElementId,EXIST|finishId,EXIST|themes,EXIST|flooring,EXIST");
+		bedroomRule.setRuleTriggerFact("com.ebuild.leap.drools|TriggerFact");
+		//bedroomRule.setRuleTriggerFactParams("newElementId,EXIST|finishId,EXIST|themes,EXIST|flooring,EXIST");
 		ruleRepository.save(bedroomRule);
 	}
 

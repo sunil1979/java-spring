@@ -24,6 +24,7 @@ public class Rule {
 	private Category watchCategory;
 	private Type watchType;
 	private SubType watchSubType;
+	private SubCategory watchSubCategory;
 	private String ruleTriggerFact;
 	private String ruleTriggerFactParams;
 	private String ruleFile;
@@ -94,6 +95,15 @@ public class Rule {
 
 	public void setWatchSubType(SubType watchSubType) {
 		this.watchSubType = watchSubType;
+	}
+
+	@ManyToOne
+	public SubCategory getWatchSubCategory() {
+		return watchSubCategory;
+	}
+
+	public void setWatchSubCategory(SubCategory watchSubCategory) {
+		this.watchSubCategory = watchSubCategory;
 	}
 
 	public String getRuleTriggerFact() {

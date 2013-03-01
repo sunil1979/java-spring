@@ -29,6 +29,7 @@ import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ebuild.leap.drools.KnowledgeFactoryBean;
+import com.ebuild.leap.drools.LookupPalette;
 import com.ebuild.leap.drools.LookupPaletteUtil;
 import com.ebuild.leap.pojo.Category;
 import com.ebuild.leap.pojo.CostVersion;
@@ -66,10 +67,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 	protected static Logger log = LoggerFactory.getLogger(CustomizationServiceFacadeImpl.class);
 	private EbuildleapResultObject ero = new EbuildleapResultObject();
 	private Element rootElement = null;
-	private Long finishId;
-	private Long newElementId;
-	private String flooring;
-	private List<Object> themes = new ArrayList<Object>();
+	private Element newChildElementData = null;
 
 	@Autowired
 	private RuleRepository ruleRepository;
@@ -111,8 +109,8 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 	private DesignerServiceFacadeImpl designerService;
 
 	@Autowired
-	private LookupPaletteUtil lookupPaletteUtil;
-
+	private LookupPalette lookupPalette;
+	
 	@Autowired
 	@Qualifier("bathroomRulesKnowledge")
 	private KnowledgeFactoryBean bathroomRulesKnowledge;
@@ -277,7 +275,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 
 	@Override
 	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision, Element newChildElement,
-			ElementManifest currentElementManifest, Element ILElement) {
+			ElementManifest currentElementManifest, Element scopeElement) {
 		try {
 			ero.clear();
 			/*
@@ -298,7 +296,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENTMANIFEST_ID));
 			}
 
-			if (ILElement == null || ILElement.getId() == null) {
+			if (scopeElement == null || scopeElement.getId() == null) {
 				// throw exception
 				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_ELEMENT_ID));
 			}
@@ -313,7 +311,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
 						+ " - " + currentHomeUnitRevision.getId());
 			}
-			Element newChildElementData = elementRepository.findOne(newChildElement.getId());
+			newChildElementData = elementRepository.findOne(newChildElement.getId());
 			if (newChildElementData == null) {
 				// Throw exception - childElement not found in RDBMS
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
@@ -322,10 +320,10 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 				newChildElementData = elementMongoRepository.findOne(newChildElementData.getId());
 			}
 
-			Element ILElementData = elementRepository.findOne(ILElement.getId());
-			if (ILElementData == null) {
+			Element scopeElementData = elementRepository.findOne(scopeElement.getId());
+			if (scopeElementData == null) {
 				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
-						+ " - " + ILElement.getId());
+						+ " - " + scopeElement.getId());
 			}
 
 			HomeUnitVersion homeUnitVersion = currentHomeUnitRevisionData.getHomeUnitVersion();
@@ -370,7 +368,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			/*
 			 * APPLY RULES
 			 */
-			treeObjects = applyRules(treeObjects, newChildElementData, ILElementData);
+			treeObjects = applyRules(treeObjects, newChildElementData, scopeElementData);
 
 			/*
 			 * Save New Revision to Mongo Repository
@@ -391,38 +389,13 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 		return ero;
 	}
 
-	private List<Object> applyRules(List<Object> treeObjects, Element newChildElementData, Element ILElementData) throws Exception {
-		List<Rule> rules = ruleRepository.getRuleBywatchObjectAndWatchCategoryAndWatchSubType(Element.class.toString(), ILElementData.getCategory(),
-				ILElementData.getSubType());
+	private List<Object> applyRules(List<Object> treeObjects, Element newChildElementData, Element scopeElement) throws Exception {
+		List<Rule> rules = ruleRepository.getRuleBywatchObjectAndWatchCategoryAndWatchSubType(Element.class.toString(), scopeElement.getCategory(),
+				scopeElement.getSubType());
 		for (Object o : treeObjects) {
-			if (o instanceof Element && ((Element) o).getId().equals(ILElementData.getId())) {
+			if (o instanceof Element && ((Element) o).getId().equals(scopeElement.getId())) {
 				rootElement = (Element) o;
 			}
-		}
-		
-		newElementId = newChildElementData.getId();
-		
-		if (newChildElementData.getCategory() != null
-				&& newChildElementData.getType() != null
-				&& (newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY) || newChildElementData.getCategory()
-						.getId().equals(EbuildleapConstants.SET_ELEMENT_CATEGORY1))
-				&& newChildElementData.getType().getId().equals(EbuildleapConstants.CAB_ELEMENT_TYPE) && newChildElementData.getFinish() != null) {
-			finishId = newChildElementData.getFinish().getId();
-		}
-		if (newChildElementData.getCategory() != null
-				&& newChildElementData.getType() != null
-				&& (newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY) || newChildElementData.getCategory()
-						.getId().equals(EbuildleapConstants.SET_ELEMENT_CATEGORY1))
-				&& newChildElementData.getType().getId().equals(EbuildleapConstants.CAB_ELEMENT_TYPE)
-				&& newChildElementData.getElementThemes() != null) {
-			for (Theme theme : newChildElementData.getElementThemes()) {
-				themes.add(theme.getId());
-			}
-		}
-		if (newChildElementData.getCategory() != null && newChildElementData.getType() != null
-				&& newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY)
-				&& newChildElementData.getType().getId().equals(EbuildleapConstants.FDC_ELEMENT_TYPE)) {
-			flooring = newChildElementData.getCode1();
 		}
 		for (Rule rule : rules) {
 			System.out.println("Applying Rule :" + rule.getRuleName());
@@ -433,8 +406,12 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			String triggerFactName = st.nextToken();
 			FactType triggerFact = kbase.getFactType(triggerFactPackage, triggerFactName);
 			Object triggerFactInstance = triggerFact.newInstance();
-			triggerFactInstance = setTriggerFactInstanceParams(triggerFact, triggerFactInstance, rule.getRuleTriggerFactParams());
-			ksession = setSessionVariables(ksession, rule.getRuleParams());
+			if(rule.getRuleTriggerFactParams() != null){
+				triggerFactInstance = setTriggerFactInstanceParams(triggerFact, triggerFactInstance, rule.getRuleTriggerFactParams());
+			}
+			if(rule.getRuleParams() != null){
+				ksession = setSessionVariables(ksession, rule.getRuleParams());
+			}
 			ksession.insert(triggerFactInstance);
 			ksession.insert(rootElement);
 			ksession.fireAllRules();
