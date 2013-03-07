@@ -490,7 +490,7 @@ public class DesignerAPI {
 			@FormParam("currentElementManifestId") Long currentElementManifestId, @FormParam("quantity") Double quantity,
 			@FormParam("scale") Double scale, @FormParam("yscale") Double yscale, @FormParam("rotate") Double rotate,
 			@FormParam("positionX") Double positionX, @FormParam("positionY") Double positionY, @FormParam("positionZ") Double positionZ,
-			@FormParam("customize") Boolean customize, @FormParam("zOrder") Boolean zOrder, @FormParam("yOrder") Boolean yOrder,
+			@FormParam("customize") Boolean customize, @FormParam("zOrder") Integer zOrder, @FormParam("yOrder") Integer yOrder,
 			@FormParam("tag") String tag, @FormParam("elementGroup") Integer elementGroup, @FormParam("elementGroupTag") String elementGroupTag,
 			@FormParam("prime") Integer prime, @FormParam("negativeElementVariants") String negativeElementVariants,
 			@FormParam("context") String CONTEXT) throws JAXBException, IOException {

@@ -49,8 +49,8 @@ public class ElementManifest extends EbuildBaseObject {
 	private Double positionZ;
 	private Boolean customize;
 	private String vlTrim;
-	private Boolean zOrder;
-	private Boolean yOrder;
+	private Integer zOrder;
+	private Integer yOrder;
 	private String tag;
 	private Integer elementGroup;
 	private String elementGroupTag;
@@ -173,19 +173,19 @@ public class ElementManifest extends EbuildBaseObject {
 		this.vlTrim = vlTrim;
 	}
 
-	public Boolean getzOrder() {
+	public Integer getzOrder() {
 		return zOrder;
 	}
 
-	public void setzOrder(Boolean zOrder) {
+	public void setzOrder(Integer zOrder) {
 		this.zOrder = zOrder;
 	}
 
-	public Boolean getyOrder() {
+	public Integer getyOrder() {
 		return yOrder;
 	}
 
-	public void setyOrder(Boolean yOrder) {
+	public void setyOrder(Integer yOrder) {
 		this.yOrder = yOrder;
 	}
 
