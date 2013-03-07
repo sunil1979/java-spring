@@ -110,7 +110,7 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 
 	@Autowired
 	private LookupPalette lookupPalette;
-	
+
 	@Autowired
 	@Qualifier("bathroomRulesKnowledge")
 	private KnowledgeFactoryBean bathroomRulesKnowledge;
@@ -274,6 +274,40 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 	}
 
 	@Override
+	public EbuildleapResultObject getHomeUnitRevision(HomeUnitRevision homeUnitRevision) {
+		log.debug("START ---- INSIDE HomeUnitServiceFacadeImpl - getHomeUnitRevision");
+		try {
+			ero.clear();
+			/*
+			 * validate user input
+			 */
+			if (homeUnitRevision == null || homeUnitRevision.getId() == null) {
+				// throw exception
+				throw new Exception(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.MISSING_HOMEUNITREVISION_ID));
+			}
+			HomeUnitRevision homeUnitRevisionData = homeUnitRevisionMongoRepository.findOne(homeUnitRevision.getId());
+			if (homeUnitRevisionData == null) {
+				// Throw exception
+				throw new DataRetrievalFailureException(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.OBJECT_NOT_FOUND_IN_DATASTORE)
+						+ " - " + homeUnitRevision.getId());
+			}
+			ArrayList<HomeUnitRevision> result = new ArrayList<HomeUnitRevision>();
+			result.add(homeUnitRevisionData);
+			ero.setResultStatus(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL);
+			ero.setResult(result);
+		} catch (Exception e) {
+			log.debug(e.getClass() + ": " + e.getMessage(), e);
+			e.printStackTrace();
+			ero.setResultStatus(EbuildleapConstants.SERVICE_CALL_FAILED);
+			ero.setErrCode(EbuildleapConstants.ERROR_RETRIEVING_HOMEUNITREVISION);
+			ero.setErrDescription(ebuildLeapPropertiesUtil.getProperty(EbuildleapConstants.ERROR_RETRIEVING_HOMEUNITREVISION) + " - " + e.getClass()
+					+ ": " + e.getMessage());
+		}
+		log.debug("END ---- INSIDE HomeUnitServiceFacadeImpl - getHomeUnitRevision");
+		return ero;
+	}
+
+	@Override
 	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision, Element newChildElement,
 			ElementManifest currentElementManifest, Element scopeElement) {
 		try {
@@ -406,10 +440,10 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 			String triggerFactName = st.nextToken();
 			FactType triggerFact = kbase.getFactType(triggerFactPackage, triggerFactName);
 			Object triggerFactInstance = triggerFact.newInstance();
-			if(rule.getRuleTriggerFactParams() != null){
+			if (rule.getRuleTriggerFactParams() != null) {
 				triggerFactInstance = setTriggerFactInstanceParams(triggerFact, triggerFactInstance, rule.getRuleTriggerFactParams());
 			}
-			if(rule.getRuleParams() != null){
+			if (rule.getRuleParams() != null) {
 				ksession = setSessionVariables(ksession, rule.getRuleParams());
 			}
 			ksession.insert(triggerFactInstance);

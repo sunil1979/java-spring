@@ -144,7 +144,7 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 	public void createNewRevision() throws Exception {
 		try {
 			HomeUnitRevision currentHomeUnitRevision = new HomeUnitRevision();
-			currentHomeUnitRevision.setId(new Long("94909035299471360").longValue());
+			currentHomeUnitRevision.setId(new Long("94910329359695887").longValue());
 			Element newChildElement = new Element();
 			newChildElement.setId(new Long("22631637519183755").longValue());
 			ElementManifest currentElementManifest = new ElementManifest();
@@ -185,6 +185,17 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 		bedroomRule.setRuleTriggerFact("com.ebuild.leap.drools|TriggerFact");
 		//bedroomRule.setRuleTriggerFactParams("newElementId,EXIST|finishId,EXIST|themes,EXIST|flooring,EXIST");
 		ruleRepository.save(bedroomRule);
+		Rule kitchenRule = new Rule();
+		kitchenRule.setWatchObject(Element.class.toString());
+		kitchenRule.setRuleFile("com/ebuild/leap/drools/kitchen_rules.drl");
+		kitchenRule.setRuleName("Kitchen IL rules");
+		kitchenRule.setRuleFileType(EbuildleapConstants.DROOLS_RULE_DRL);
+		kitchenRule.setRuleParams("designerService,EXIST|lookupPalette,EXIST|rootElement,EXIST|newChildElementData,EXIST");
+		kitchenRule.setWatchCategory(watchCategory);
+		SubType kitchenSubType = subTypeRepository.findOne(new Long("12").longValue());
+		kitchenRule.setWatchSubType(kitchenSubType);
+		kitchenRule.setRuleTriggerFact("com.ebuild.leap.drools|TriggerFact");
+		ruleRepository.save(kitchenRule);
 	}
 
 	public void executeRules() throws Exception {

@@ -10,6 +10,11 @@ public interface EbuildleapConstants {
 	public static final Long SET_ELEMENT_CATEGORY = 50L;
 	public static final Long FDC_ELEMENT_TYPE = 50L;
 	public static final Long CAB_ELEMENT_TYPE = 20L;
+	public static final Long FDC_FLOORING_ELEMENT_SUBTYPE = 10L;
+	public static final Long FDC_DADO_ELEMENT_SUBTYPE = 20L;
+	public static final Long FDC_COUNTER_ELEMENT_SUBTYPE = 30L;
+	public static final Long FDC_BFL_ELEMENT_SUBTYPE = 40L;
+	public static final Long FDC_BDD_ELEMENT_SUBTYPE = 50L;
 
 	// DATASTORE CONTEXT
 	public static final String DATASTORE_RDBMS = "RDBMS";
@@ -97,6 +102,7 @@ public interface EbuildleapConstants {
 	public static final String ERROR_RETRIEVING_CPR = "71";
 	public static final String ERROR_UPDATING_CPR = "72";
 	public static final String ERROR_DELETING_CPR = "73";
+	public static final String ERROR_RETRIEVING_HOMEUNITREVISION = "74";
 
 	// ELEMENT CATEGORY
 	public static final Long IL_CATEGORY_ID = 60L;

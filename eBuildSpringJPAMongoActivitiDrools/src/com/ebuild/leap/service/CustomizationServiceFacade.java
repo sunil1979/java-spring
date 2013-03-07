@@ -15,6 +15,7 @@ public interface CustomizationServiceFacade {
 	public EbuildleapResultObject createHomeUnit(User user, Product product, CostVersion costVersion);
 	public EbuildleapResultObject getHomeUnitVersions(HomeUnit homeUnit);
 	public EbuildleapResultObject getLatestHomeUnitRevision(HomeUnitVersion homeUnitVersion);
+	public EbuildleapResultObject getHomeUnitRevision(HomeUnitRevision homeUnitRevision);
 	public EbuildleapResultObject createNewRevision(HomeUnitRevision currentHomeUnitRevision,
 			Element newChildElement, ElementManifest currentElementManifest, Element ILElement);
 }

@@ -118,6 +118,19 @@ public class CustomizationAPI {
 		return ero;
 	}
 	
+
+	@GET
+	@Path("getHomeUnitRevision")
+	@Produces({ MediaType.APPLICATION_XML })
+	public EbuildleapResultObject getHomeUnitRevision(
+			@QueryParam("homeUnitRevisionId") Long homeUnitRevisionId
+			) throws JAXBException, IOException {
+		HomeUnitRevision homeUnitRevision = new HomeUnitRevision();
+		homeUnitRevision.setId(homeUnitRevisionId);
+		EbuildleapResultObject ero = customizationService.getHomeUnitRevision(homeUnitRevision);
+		return ero;
+	}
+	
 	
 	@POST
 	@Path("createNewRevision")

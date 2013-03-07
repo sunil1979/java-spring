@@ -32,7 +32,7 @@ declare TriggerFact
 end
 
 
-rule "init rule - set bedroom fact and assert"
+rule "init rule - set trigger fact and assert"
 salience 100000
 	when
 		$triggerfact : TriggerFact(newElementId == 0)

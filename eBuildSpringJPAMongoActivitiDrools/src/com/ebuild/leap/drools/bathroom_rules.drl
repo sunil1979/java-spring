@@ -1,13 +1,81 @@
 package com.ebuild.leap.drools
 
+/*
+PRECONDITION :- 
+1. THE IL ELEMENT IS ALREADY IDENTIFIED TO BE BATHROOM
+2. TRIGGER FACT TYPE IS INSTANTIATED
+*/
+
 //list any import classes here.
-import com.ebuild.leap.pojo.ElementManifest;
-import com.ebuild.leap.pojo.Element;
-import com.ebuild.leap.pojo.Category;
-import com.ebuild.leap.pojo.SubType;
-import com.ebuild.leap.util.EbuildleapConstants;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+import com.ebuild.leap.pojo.*;
+import com.ebuild.leap.util.*;
+import com.ebuild.leap.service.*;
+import com.ebuild.leap.drools.*;
+
 
 //declare any global variables here
+global DesignerServiceFacadeImpl designerService;
+global LookupPalette lookupPalette;
+global Element rootElement;
+global Element newChildElementData;
+
+//declare quasi object to track changes
+declare TriggerFact
+	newElementId : Long
+	flooring : String
+	dado : String
+	counter : String
+end
+
+
+rule "init rule - set trigger fact and assert"
+salience 100000
+	when
+		$triggerfact : TriggerFact(newElementId == 0)
+	then
+		/*
+		System.out.println("************************BEFORE********************************");
+		System.out.println("NewElementId :"+$triggerfact.getNewElementId());
+		System.out.println("Flooring :"+$triggerfact.getFlooring());
+		System.out.println("Themes :"+$triggerfact.getThemes());	
+		System.out.println("*************************BEFORE*******************************");
+		*/
+		//set new element id
+		$triggerfact.setNewElementId(newChildElementData.getId());
+		//set flooring
+		if (newChildElementData.getCategory() != null && newChildElementData.getType() != null
+			&& newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY)
+			&& newChildElementData.getType().getId().equals(EbuildleapConstants.FDC_ELEMENT_TYPE) && newChildElementData.getCode1().contains("FL")){
+				$triggerfact.setFlooring(newChildElementData.getCode1());
+		}
+		//set dado
+		if(newChildElementData.getCategory() != null && newChildElementData.getType() != null
+			&& newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY)
+			&& newChildElementData.getType().getId().equals(EbuildleapConstants.FDC_ELEMENT_TYPE) && newChildElementData.getCode1().contains("DD")){
+				$triggerfact.setDado(newChildElementData.getCode1());
+		}
+
+		//set counter
+		if(newChildElementData.getCategory() != null && newChildElementData.getType() != null
+			&& newChildElementData.getCategory().getId().equals(EbuildleapConstants.UNIT_ELEMENT_CATEGORY)
+			&& newChildElementData.getType().getId().equals(EbuildleapConstants.FDC_ELEMENT_TYPE) && newChildElementData.getCode1().contains("CT")){
+				$triggerfact.setCounter(newChildElementData.getCode1());
+		}
+		/*
+		System.out.println("************************AFTER********************************");
+		System.out.println("NewElementId :"+$triggerfact.getNewElementId());
+		System.out.println("Flooring :"+$triggerfact.getFlooring());
+		System.out.println("Dado :"+$triggerfact.getDado());
+		System.out.println("Counter :"+$triggerfact.getCounter());	
+		System.out.println("************************AFTER********************************");
+		*/
+		update($triggerfact);
+end
+
 
 rule "For Every Element Insert ElementManifest"
     when
@@ -24,30 +92,358 @@ rule "For Every ElementManifest Insert Element"
         insert($elementManifest.getChildElement());
 end
 
-rule "Dado Flooring Rule1"
+
+rule "Sync dado with flooring"
+dialect "java" 
 	when
-		$dadoelement : Element(code1 == "XXX", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.DADO_SUBTYPE_ID )
-		$bflelement : Element(code1 != "YYY", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BFL_SUBTYPE_ID )
-		$bddelement : Element(code1 != "ZZZ", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BDD_SUBTYPE_ID )
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && flooring != null && $flooring : flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.code1 != null && $code1 : childElement.code1 && 
+		childElement.category.id == EbuildleapConstants.UNIT_ELEMENT_CATEGORY && childElement.type.id == EbuildleapConstants.FDC_ELEMENT_TYPE && 
+		childElement.subType.id == EbuildleapConstants.FDC_DADO_ELEMENT_SUBTYPE && $code1.contains("DD") && 
+		eval(!stringContainsListItem($code1,lookupPalette.getValues("bathroom_flooring_dado_lookup.properties",$flooring))))
 	then
-		modify($bflelement){
-			setCode1("YYY")
-		};
-		modify($bddelement){
-			setCode1("ZZZ")
-		};
+		System.out.println("Sync dado with flooring MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(variantElement.getCode1() != null && lookupPalette.getValues("bathroom_flooring_dado_lookup.properties",$flooring).contains(variantElement.getCode1())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}		
+		
 end
 
-rule "Dado Flooring Rule2"
+rule "Sync flooring with dado"
+dialect "java" 
 	when
-		$dadoelement : Element(code1 == "AAA", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.DADO_SUBTYPE_ID )
-		$bflelement : Element(code1 != "BBB", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BFL_SUBTYPE_ID )
-		$bddelement : Element(code1 != "CCC", category instanceof Category, category.id == EbuildleapConstants.IL_UNIT_ID , subType instanceof SubType, subType.id == EbuildleapConstants.BDD_SUBTYPE_ID )
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.code1 != null && $code1 : childElement.code1 && 
+		childElement.category.id == EbuildleapConstants.UNIT_ELEMENT_CATEGORY && childElement.type.id == EbuildleapConstants.FDC_ELEMENT_TYPE && 
+		childElement.subType.id == EbuildleapConstants.FDC_FLOORING_ELEMENT_SUBTYPE && $code1.contains("FL") && 
+		eval(!stringContainsListItem($code1,lookupPalette.getValues("bathroom_dado_flooring_lookup.properties",$dado))))
 	then
-		modify($bflelement){
-			setCode1("BBB")
-		};
-		modify($bddelement){
-			setCode1("CCC")
-		};
+		System.out.println("Sync flooring with dado MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(variantElement.getCode1() != null && lookupPalette.getValues("bathroom_dado_flooring_lookup.properties",$dado).contains(variantElement.getCode1())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}		
 end
+
+rule "Sync counter with dado"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.code1 != null && $code1 : childElement.code1 && 
+		childElement.category.id == EbuildleapConstants.UNIT_ELEMENT_CATEGORY && childElement.type.id == EbuildleapConstants.FDC_ELEMENT_TYPE && 
+		childElement.subType.id == EbuildleapConstants.FDC_COUNTER_ELEMENT_SUBTYPE && $code1.contains("CT") && 
+		eval(!stringContainsListItem($code1,lookupPalette.getValues("bathroom_dado_counter_lookup.properties",$dado))))						
+	then
+		System.out.println("Sync counter with dado MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(variantElement.getCode1() != null && lookupPalette.getValues("bathroom_dado_counter_lookup.properties",$dado).contains(variantElement.getCode1())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}						
+end
+
+rule "Sync dado with counter"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && counter != null && $counter : counter)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.code1 != null && $code1 : childElement.code1 && 
+		childElement.category.id == EbuildleapConstants.UNIT_ELEMENT_CATEGORY && childElement.type.id == EbuildleapConstants.FDC_ELEMENT_TYPE && 
+		childElement.subType.id == EbuildleapConstants.FDC_DADO_ELEMENT_SUBTYPE && $code1.contains("DD") && 
+		eval(!stringContainsListItem($code1,lookupPalette.getValues("bathroom_counter_dado_lookup.properties",$counter))))				
+	then
+		System.out.println("Sync dado with counter MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(variantElement.getCode1() != null && lookupPalette.getValues("bathroom_counter_dado_lookup.properties",$counter).contains(variantElement.getCode1())){
+					System.out.println("Replacing :"+$elementManifest.getChildElement().getId()+" with :"+variantElement.getId());
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}						
+end
+
+
+rule "Sync skirting with flooring"
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && flooring != null && $flooring : flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		lookupPalette.getValues("flooring_skirting_lookup.properties",$flooring) not contains childElement.code1)
+	then
+		System.out.println("Sync skirting with flooring MET :"+$elementManifest.getChildElement().getId());
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("flooring_skirting_lookup.properties",$flooring) != null && lookupPalette.getValues("flooring_skirting_lookup.properties",$flooring).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}
+end
+
+
+rule "If dado is stone, sync bfl with compatible dado values"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && lookupPalette.getValues("stone_flooring_dado.properties","DD") contains $dado)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BFL_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado) not contains childElement.code1)
+	then
+		System.out.println("dado is stone, sync bfl with compatible dado values MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado) != null && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}		
+end
+
+
+rule "If dado is stone, sync bdd with compatible dado values"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && lookupPalette.getValues("stone_flooring_dado.properties","DD") contains $dado)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BDD_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado) not contains childElement.code1)
+	then
+		System.out.println("dado is stone, sync bdd with compatible dado values MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado) != null && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}				
+end
+
+rule "If flooring is stone and dado is not stone, sync bfl with flooring"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && flooring != null && $flooring : flooring && 
+		lookupPalette.getValues("stone_flooring_dado.properties","DD") not contains $dado && lookupPalette.getValues("stone_flooring_dado.properties","FL") contains $flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BFL_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_flooring_bfl_lookup.properties",$flooring) not contains childElement.code1)
+	then
+		System.out.println("flooring is stone and dado is not stone, sync bfl with flooring MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_flooring_bfl_lookup.properties",$flooring) != null && lookupPalette.getValues("bathroom_flooring_bfl_lookup.properties",$flooring).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}						
+end
+
+rule "If flooring is stone and dado is not stone, sync bdd with flooring"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && flooring != null && $flooring : flooring && 
+		lookupPalette.getValues("stone_flooring_dado.properties","DD") not contains $dado && lookupPalette.getValues("stone_flooring_dado.properties","FL") contains $flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BDD_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_flooring_bdd_lookup.properties",$flooring) not contains childElement.code1)
+	then
+		System.out.println("flooring is stone and dado is not stone, sync bdd with flooring MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_flooring_bdd_lookup.properties",$flooring) != null && lookupPalette.getValues("bathroom_flooring_bdd_lookup.properties",$flooring).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}						
+end
+
+rule "If flooring is not stone and dado is not stone, sync bfl with compatible dado values"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && flooring != null && $flooring : flooring && 
+		lookupPalette.getValues("stone_flooring_dado.properties","DD") not contains $dado && lookupPalette.getValues("stone_flooring_dado.properties","FL") not contains $flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BFL_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado) not contains childElement.code1)
+	then
+		System.out.println("flooring is not stone and dado is not stone, sync bfl with compatible dado values MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado) != null && lookupPalette.getValues("bathroom_dado_bfl_lookup.properties",$dado).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}		
+end
+
+rule "If flooring is not stone and dado is not stone, sync bdd with compatible dado values"
+dialect "java" 
+	when
+		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && dado != null && $dado : dado && flooring != null && $flooring : flooring && 
+		lookupPalette.getValues("stone_flooring_dado.properties","DD") not contains $dado && lookupPalette.getValues("stone_flooring_dado.properties","FL") not contains $flooring)
+		$elementManifest : ElementManifest(childElement != null && childElement.category != null && childElement.type != null && childElement.subType != null  && childElement.id != $newElementId && childElement.category.id == 40 && childElement.type.id == 50 &&
+		childElement.subType.id == EbuildleapConstants.FDC_BDD_ELEMENT_SUBTYPE && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado) not contains childElement.code1)
+	then
+		System.out.println("flooring is not stone and dado is not stone, sync bdd with compatible dado values MET");
+		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");
+		if(ero.getResultStatus().equalsIgnoreCase(EbuildleapConstants.SERVICE_CALL_SUCCESSFUL) && ero.getResult() != null && ero.getResult().size() > 0){
+			Boolean foundVariant = false;
+			for(int i = 0; i<ero.getResult().size();i++){
+				Element variantElement = (Element)ero.getResult().get(i);
+				if(!foundVariant && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado) != null && lookupPalette.getValues("bathroom_dado_bdd_lookup.properties",$dado).contains(variantElement.getCode1())){
+					$elementManifest.setChildElement(variantElement);
+					foundVariant = true;
+					update($elementManifest);
+				}
+			}
+			if(!foundVariant){
+				System.out.println("**********************No valid variant found********************");
+			}
+		}				
+end
+
+
+function Boolean containsItem(Set SetA, Set SetB){
+		//System.out.println("List A :" + ListA.toString());
+		//System.out.println("SetB :" + SetB.toString());
+		for (Object item1 : SetA) {
+			if (SetB.contains(((Long)item1).intValue())) {
+				//System.out.println("contains");
+				return true;
+			}
+		}
+		return false;
+	}
+
+function Boolean containsItem1(Set SetA, List ListB){
+		//System.out.println("SetA :" + SetA.toString());
+		//System.out.println("ListB :" + ListB.toString());
+		for (Object item1 : SetA) {
+			for (Object theme : ListB) {
+				System.out.println("Theme Id :"+((Theme)theme).getId());
+				if (((Theme)theme).getId().equals((Long)item1)) {
+					System.out.println("contains");
+					return true;
+				}
+			}
+		}
+		return false;
+}
+
+function Boolean containsTheme(List ListA, List ListB){
+	//System.out.println("ListA :"+ListA);
+	//System.out.println("ListB :"+ListB);
+	for(Object themeA : ListA){
+		for(Object themeB : ListB){
+			if(((Theme)themeA).getId().equals(((Theme)themeB).getId())){
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function Boolean stringContainsListItem(String str, Set setItems){
+	//System.out.println("Input String :"+str);
+	//System.out.println("Input List :"+setItems.toString());
+	for(Object strObj : setItems){
+		if(str.contains((String)strObj)){
+			//System.out.println("String contains list item :"+(String)strObj);
+			return true;
+		}
+	}
+	return false;
+}
+
+function Set getIdList(List themeList){
+		Set retList = new HashSet();
+		for(Object theme : themeList){
+			retList.add(((Theme)theme).getId());
+		}
+		return retList;
+}
