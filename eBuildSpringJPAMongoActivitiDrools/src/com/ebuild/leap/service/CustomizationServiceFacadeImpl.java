@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +61,7 @@ import com.ebuild.leap.repository.mongodb.ProductMongoRepository;
 import com.ebuild.leap.util.EbuildleapConstants;
 import com.ebuild.leap.util.EbuildleapPropertiesUtil;
 
-@Component
+@Service
 @TransactionConfiguration(defaultRollback = false)
 public class CustomizationServiceFacadeImpl implements CustomizationServiceFacade {
 
@@ -112,20 +113,16 @@ public class CustomizationServiceFacadeImpl implements CustomizationServiceFacad
 	private LookupPalette lookupPalette;
 
 	@Autowired
-	@Qualifier("bathroomRulesKnowledge")
-	private KnowledgeFactoryBean bathroomRulesKnowledge;
-
-	@Autowired
 	@Qualifier("flattenTreeRulesKnowledge")
 	private KnowledgeFactoryBean flattenTreeRulesKnowledge;
 
-	@Autowired
-	@Qualifier("finishPaletteKnowledge")
-	private KnowledgeFactoryBean finishPaletteKnowledge;
+	public DesignerServiceFacadeImpl getDesignerService() {
+		return designerService;
+	}
 
-	@Autowired
-	@Qualifier("impactLinkKnowledge")
-	private KnowledgeFactoryBean impactLinkKnowledge;
+	public void setDesignerService(DesignerServiceFacadeImpl designerService) {
+		this.designerService = designerService;
+	}
 
 	@Override
 	@Transactional

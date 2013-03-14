@@ -184,7 +184,7 @@ rule "Sync flooring with cabintetry finish rule"
 	when
 		$triggerfact : TriggerFact(newElementId != null && $newElementId : newElementId && finishId != null && $finishId : finishId)
 		$elementManifest : ElementManifest(childElement != null && childElement.code1 != null && childElement.category != null && childElement.type != null && childElement.id != $newElementId && childElement.category.id == 40 && 
-		childElement.type.id == 50 && $code1 : childElement.code1 && eval(!stringContainsListItem($code1,lookupPalette.getValues("bedroom_finish_flooring_lookup.properties",$finishId.toString()))))
+		childElement.type.id == 50 && eval(childElement.getCode1().startsWith("FL")) && $code1 : childElement.code1 && eval(!stringContainsListItem($code1,lookupPalette.getValues("bedroom_finish_flooring_lookup.properties",$finishId.toString()))))
 	then
 		System.out.println("Sync flooring with cabintetry finish MET");
 		EbuildleapResultObject ero = designerService.getVariantElements(rootElement, $elementManifest, "MONGO");

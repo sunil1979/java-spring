@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 
 import com.ebuild.leap.pojo.Brand;
@@ -42,7 +43,7 @@ import com.ebuild.leap.util.EbuildleapPropertiesUtil;
 import com.ebuild.leap.util.EbuildleapUtil;
 import com.ebuild.leap.util.NullAwareBeanUtilsBean;
 
-@Component
+@Service
 @TransactionConfiguration(defaultRollback = false)
 public class AdminServiceFacadeImpl implements AdminServiceFacade {
 

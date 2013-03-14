@@ -131,8 +131,9 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 	@Autowired
 	private LookupPalette lookupPalette;
 
+	@Test
 	public void loadSpring() throws Exception {
-
+		
 	}
 
 	
@@ -140,7 +141,7 @@ public class DroolsTest extends AbstractTransactionalJUnit4SpringContextTests {
 		System.out.println("lookup result :" + lookupPalette.getValues("bedroom_theme_theme_lookup.properties", "102"));
 	}
 
-	@Test
+	
 	public void createNewRevision() throws Exception {
 		try {
 			HomeUnitRevision currentHomeUnitRevision = new HomeUnitRevision();

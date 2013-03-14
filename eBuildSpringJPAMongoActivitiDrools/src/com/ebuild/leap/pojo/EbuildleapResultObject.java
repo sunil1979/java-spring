@@ -8,7 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 @SuppressWarnings("rawtypes")
-@XmlRootElement(namespace = "com.ebuild.leap.pojo")
+//@XmlRootElement(namespace = "com.ebuild.leap.pojo")
+@XmlRootElement
 @XmlSeeAlso({ Brand.class, Category.class, CPR.class, Element.class,
 		ElementManifest.class, Finish.class, HomeUnit.class,
 		HomeUnitRevision.class, HomeUnitVersion.class, Material.class,

@@ -1,0 +1,406 @@
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:attrib="http://www.carto.net/attrib" version="1.1" height="2000" width="2000" viewBox="0 0 2000 2000" id="svgCanvas">
+     <defs>
+     
+    <filter id="lineShadow"  >
+      <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0" />
+      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5" />
+      <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+    </filter>
+
+     <filter id="MarkerFilter"  width="200%" height="200%"> 
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/> 
+    <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/> 
+    <feSpecularLighting in="blur" surfaceScale="2" specularConstant=".75"  
+        specularExponent="10" lighting-color="#bbbbbb"   
+        result="specOut"> 
+      <fePointLight x="-5000" y="-5000" z="5000"/> 
+    </feSpecularLighting> 
+    <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut"/> 
+    <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic"  
+        k1="0" k2="1" k3="1" k4="0" result="litPaint"/> 
+    <feMerge> 
+      <feMergeNode in="offsetBlur"/> 
+      <feMergeNode in="litPaint"/> 
+    </feMerge> 
+  </filter>
+  
+  <filter id="dropshadow" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1"/> 
+      <feOffset dx="1" dy="1" result="offsetblur"/> 
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+
+     
+  </defs>
+    
+<g id="viewport" transform="matrix(1,0,0,1,0,0)" >
+</g> 
+<g id="ebMarkerGroup">
+</g>
+<defs>
+    <g id="eb_marker_group_def" > 
+			<polyline  class="eBsystem" onclick="return buttonEvent(200, evt);" onmouseover="return showOverview(selEl.id);" points="0,0 0,10 10,10 10,0 0,0" fill="#EF8412" stroke="#A6A6A6" stroke-width="0.5"  />
+			<polyline class="eBsystem"  onclick="return buttonEvent(200, evt);" onmouseover="return showOverview(selEl.id);" points="5,10 5,5 9,5 5,10" fill="#333333" stroke="#333333" stroke-width="0.5"  />
+			<polyline  class="eBsystem" onclick="return buttonEvent(202, evt);" onmouseover="return showOverview(selEl.id);" points="-2,1 -2,9 -7,5 -2,1" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline  class="eBsystem" onclick="return buttonEvent(201, evt);"  onmouseover="return showOverview(selEl.id);" points="12,1 12,9 17,5 12,1" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline  class="eBsystem" onclick="return buttonEvent(301, evt);"  onmouseover="return showOverview(selEl.id);" points="1,-2 9,-2 5,-7 1,-2" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline  class="eBsystem" onclick="return buttonEvent(302, evt);" onmouseover="return showOverview(selEl.id);" points="1,12 9,12 5,17 1,12" fill="#333333" stroke="#333333" stroke-width="0.5"   /> 	  	
+			
+	</g>
+</defs>
+
+<rect id="leftBar" x="0" y="0" width="60" height="1000" fill="white"/>
+<rect id="rightBar" x="0" y="0" width="70" height="1000" fill="white"/>
+
+<g id="grid" transform="scale(0)">
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink" pointer-events="none" >
+	<defs>
+		<pattern id="hatchGrid" patternUnits="userSpaceOnUse" x="0" y="0" width="25" height="25">
+			<g style="fill:none; stroke:#A6A6A6; stroke-width:1">
+				<path d="M0,0 l25,0"/>
+				<path d="M0,0 l0,25"/>
+			</g>
+		</pattern>
+	</defs>
+<rect x="0" y="0" width="2000" height="2000"  style="fill:url(#hatchGrid);stroke:#A6A6A6;stroke-width:1;"/>
+</svg>
+</g>
+
+<g id="Chooser" />
+<g id="Overview" />
+<g id="gContextMenu" transform="scale(0) translate(2000,2000)" pointer-events="none" >
+<path d="M0 0 L415 0 L415 200 L0 200 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white" />
+<rect x="1" y="1" width="413" height="35"  stroke="#A6A6A6" stroke-width="1" fill="#FFFFCC"/>
+<path  d="M0 35 L415 35 L0 35 Z" stroke="#A6A6A6" stroke-width="1" fill="#A6A6A6" />
+<path  d="M0 90 L415 90 L0 90 Z" stroke="#A6A6A6" stroke-width="1" stroke-dasharray="20,20" fill="#A6A6A6" />
+<path  d="M0 145 L415 145 L0 145 Z" stroke="#A6A6A6" stroke-width="1" stroke-dasharray="20,20" fill="#A6A6A6" />
+<g tooltip="Close" transform="translate(415,0) rotate(45) " onclick="removeChooser();"> 
+<circle tooltip="Close"  class="eBsystem"  cx="0" cy="0" r="10" fill="white" stroke="#A6A6A6" stroke-width="1"/>
+<polyline tooltip="Close"  class="eBsystem" points="0,0 -5,0 5,0 0,0 0,-5 0,5 0,0" fill="#484848" stroke="#484848" stroke-width="1"/> 
+</g>
+<text pointer-events="all" text-anchor="middle" id="ContextMenu_Element" x="150" y="20" font-family="Verdana,Arial,Helvetica,sans-serif" text-decoration="underline" font-size="10px" fill="#484848"></text>
+<text pointer-events="all" text-anchor="middle" class="eBsystem" id="ContextMenu_Change1" x="50" y="65" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848" onclick="return showOptionPicker(evt,1);">Change Use...</text>
+<text pointer-events="all" text-anchor="middle" class="eBsystem" id="ContextMenu_Change2" x="50" y="120" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848" onclick="return showOptionPicker(evt,2);">Change Size...</text>
+<text pointer-events="all" text-anchor="middle" class="eBsystem" id="ContextMenu_Change3" x="50" y="170" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848" onclick="return showOptionPicker(evt,3);">Change Layout...</text>
+</g>
+
+<g id="gOptionPicker" transform="scale(2) translate(2000,2000)" pointer-events="none" >
+<path d="M0 0 L415 0 L415 200 L0 200 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white"/>
+
+<rect x="1" y="1" width="413" height="35"  stroke="#A6A6A6" stroke-width="1" fill="#FFFFCC"/>
+<text pointer-events="all" id="OptionPickerText_Element" x="80" y="20" font-family="Verdana,Arial,Helvetica,sans-serif" text-decoration="underline" font-size="10px" fill="#484848"></text>
+<text pointer-events="all" text-anchor="right" x="10" y="34" font-family="Verdana,Arial,Helvetica,sans-serif"  font-style="italic" font-size="6px" fill="#484848">Click on any Option to Change Selection</text>
+<text pointer-events="all" text-anchor="right" x="270" y="34" font-family="Verdana,Arial,Helvetica,sans-serif"  font-style="italic" font-size="6px" fill="#484848">Click on Left/Right arrows to browse Options</text>
+
+<g transform="scale (1) translate(15,40)">
+<text id="OptionPickerDefaultTextCaption" x="35" y="7" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >Default</text>
+<g transform="scale (1) translate(0,10)">
+<svg height="100" width="100" viewBox="0 0 100 100" id="svgOptionPickerDefault"  transform="translate(0,0)" >
+<path class="eBsystem" d="M0 0 L100 0 L100 100 L0 100 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white" onclick="return optionClicked(evt,'OptionPickerDefault');"   filter="url(#MarkerFilter)"/>
+<text id="OptionPickerDefaultText" transform="scale(1)" x="25" y="70" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="10px" fill="white" >Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="2s" repeatCount="indefinite" /></text>
+<g id="OptionPickerDefault" />
+<g id="OptionPickerDefaultZoom" onclick="return optionZoomClicked(evt,1);"> 
+<circle class="eBsystem"  cx="95" cy="5" r="5" fill="#5CB3FF" stroke="#A6A6A6" stroke-width="1"/>
+<polyline class="eBsystem" points="90,5 100,5 95,5 95,0 95,10 95,5" fill="white" stroke="white" stroke-width="1"/> 
+</g>
+</svg>
+</g>
+<text id="OptionPickerDefaultTextCode" x="0" y="120" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text id="OptionPickerDefaultTextName" x="0" y="130" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text id="OptionPickerDefaultTextPrice" x="0" y="140" width="100" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >`</text>
+<text  class="eBsystem"  id="OptionPickerDefaultTextRuleChanges" onclick="return buttonEvent(81,evt);" x="0" y="150" width="100"  text-decoration = "underline" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="1s" repeatCount="indefinite" /></text>
+</g>
+
+<g transform="scale (1) translate(130,40)">
+<text id="OptionPickerCurrentTextCaption" x="35" y="7" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >Current</text>
+<g transform="scale (1) translate(0,10)">
+<svg height="100" width="100" viewBox="0 0 100 100" id="svgOptionPickerCurrent"  transform="translate(100,0)">
+<path class="eBsystem" d="M0 0 L100 0 L100 100 L0 100 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white" onclick="return optionClicked(evt,'OptionPickerCurrent');"   filter="url(#MarkerFilter)"/>
+<text id="OptionPickerCurrentText" transform="scale(1)" x="25" y="70" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="10px" fill="white" >Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="3s" repeatCount="indefinite" /></text>
+<g id="OptionPickerCurrent" />
+<g id="OptionPickerDefaultZoom" onclick="return optionZoomClicked(evt,2);"> 
+<circle class="eBsystem"  cx="95" cy="5" r="5" fill="#5CB3FF" stroke="#A6A6A6" stroke-width="1"/>
+<polyline class="eBsystem" points="90,5 100,5 95,5 95,0 95,10 95,5" fill="white" stroke="white" stroke-width="1"/> 
+</g>
+</svg>
+</g>
+<text id="OptionPickerCurrentTextCode" x="0" y="120" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text id="OptionPickerCurrentTextName" x="0" y="130" width="100" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text id="OptionPickerCurrentTextPrice" x="0" y="140" width="100" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >`</text>
+</g>
+
+<g transform="scale (1) translate(275,40)">
+<text  id="OptionPickerOptionTextCaption" x="20" y="7" width="100"  font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >Option</text>
+<g transform="scale (1) translate(0,10)">
+<polyline class="eBsystem"   points="-25,50 -5,0 -5,100 -25,50" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-optionP"   onclick="return nextOptionClicked(1, evt);" filter="url(#MarkerFilter)" />
+<polyline class="eBsystem"   points="125,50 105,0 105,100 125,50" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-optionN"    onclick="return nextOptionClicked(0, evt);" filter="url(#MarkerFilter)"/>
+<svg height="100" width="100" viewBox="0 0 100 100" id="svgOptionPickerOption" transform="translate(200,0)">
+<path class="eBsystem" d="M0 0 L100 0 L100 100 L0 100 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white" onclick="return optionClicked(evt,'OptionPickerOption');"  filter="url(#MarkerFilter)"/>
+<text id="OptionPickerOptionText" transform="scale(1)" x="25" y="70" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="10px" fill="white" >Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="2s" repeatCount="indefinite" /></text>
+<g id="OptionPickerOption" />
+<g id="OptionPickerDefaultZoom" onclick="return optionZoomClicked(evt,3);"> 
+<circle class="eBsystem"  cx="95" cy="5" r="5" fill="#5CB3FF" stroke="#A6A6A6" stroke-width="1"/>
+<polyline class="eBsystem" points="90,5 100,5 95,5 95,0 95,10 95,5" fill="white" stroke="white" stroke-width="1"/> 
+</g>
+</svg>
+</g>
+<text  id="OptionPickerOptionTextCode" x="0" y="120" width="100"  font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text  id="OptionPickerOptionTextName" x="0" y="130" width="100"  font-family="Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" ></text>
+<text  id="OptionPickerOptionTextPrice" x="0" y="140" width="100"  font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >`</text>
+<text  class="eBsystem"  id="OptionPickerOptionTextRuleChanges" onclick="return buttonEvent(80,evt);" x="0" y="150" width="100"  text-decoration = "underline" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="8px" fill="#484848" >Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="1s" repeatCount="indefinite" /></text>
+</g>
+<g tooltip="Close" transform="translate(415,0) rotate(45) " onclick="removeChooser();removeRuleChanges();"> 
+<circle tooltip="Close"  class="eBsystem"  cx="0" cy="0" r="10" fill="white" stroke="#A6A6A6" stroke-width="1"  filter="url(#MarkerFilter)"/>
+<polyline tooltip="Close"  class="eBsystem" points="0,0 -5,0 5,0 0,0 0,-5 0,5 0,0" fill="#484848" stroke="#484848" stroke-width="1"/> 
+</g>
+</g>
+
+<g id="eB-RuleChanges" transform="translate(2000,2000) scale(0)">
+<path d="M25 -10 L25 0 L0 0 L0 100 L400 100 L400 0 L140 0 L140 -10" stroke="#A6A6A6" stroke-width="5" fill="white"  filter="url(#MarkerFilter)"/>
+<text x="10" y="30" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848">Design Compatibility Changes:</text>
+<text id="eB-RuleChangesText1" pointer-events="all" class="eBsystem"  x="10" y="50" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText11" pointer-events="all" class="eBsystem"  x="130" y="50" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText111"  x="250" y="50" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText2" pointer-events="all" class="eBsystem"  x="10" y="65" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText22" pointer-events="all" class="eBsystem"  x="130" y="65" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText222"  x="250" y="65" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText3" pointer-events="all" class="eBsystem"  x="10" y="80" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText33" pointer-events="all" class="eBsystem"  x="130" y="80" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText333"  x="250" y="80" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText4" pointer-events="all" class="eBsystem"  x="10" y="95" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText44" pointer-events="all" class="eBsystem"  x="130" y="95" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<text id="eB-RuleChangesText444"   x="250" y="95" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+</g>
+
+<g id="eB-Loading2" transform="scale(0)">
+<rect x="0" y="0" width="400" height="50"  style="fill:#484848;stroke:#A6A6A6;stroke-width:1;"/>
+<text id="eB-LoadingText"  x="150" y="30" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="20px" fill="#FF6600" filter="url(#dropshadow)">Loading...
+<animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="1s" repeatCount="indefinite" /></text>
+</g>
+<g id="eB-Loading" transform="scale(0)">
+<image x="0" y="0" width="200px" height="200px" 
+    xlink:href="Images/loading5.gif"> 
+    </image> 
+</g>
+
+	
+<g id="gVisualDisplay" transform="scale(1) translate(2000,2000)" pointer-events="none" >
+<path d="M0 0 L410 0 L410 410 L0 410 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white"/>
+<polyline class="eBsystem" tooltip="Previous"  points="-50,205 -5,5 -5,405 -50,205" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"    onclick="return nextVisualDisplay(0, evt);" filter="url(#MarkerFilter)" />
+<polyline class="eBsystem" tooltip="Next"  points="460,205 415,5 415,405 460,205" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"    onclick="return nextVisualDisplay(1, evt);" filter="url(#MarkerFilter)"/>
+<g transform="scale (1) translate(5,5)">
+<svg height="400" width="400" viewBox="0 0 400 400" id="svgVisualDisplay"  transform="translate(0,0)" >
+<path class="eBsystem" d="M0 0 L400 0 L400 400 L0 400 L0 0 Z" stroke="#A6A6A6" stroke-width="5" fill="white"  filter="url(#MarkerFilter)"/>
+<g id="gVisualDisplayImage" />
+<text id="txtVisualDisplayImage"   x="5" y="25" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#484848"></text>
+<g id="gVisualDisplayImageZoom" onclick="return imageZoomClicked(evt,1);" transform="scale(1) translate(2000,2000)"> 
+<circle class="eBsystem"  cx="385" cy="15" r="15" fill="#5CB3FF" stroke="#A6A6A6" stroke-width="1"/>
+<polyline class="eBsystem" points="390,5 400,5 395,5 395,0 395,10 395,5" fill="white" stroke="white" stroke-width="1"/> 
+</g>
+</svg>
+</g>
+<g tooltip="Close" transform="translate(410,0) rotate(45) " onclick="removeVisualDisplay()"> 
+<circle tooltip="Close"  class="eBsystem"  cx="0" cy="0" r="15" fill="white" stroke="#A6A6A6" stroke-width="1"  filter="url(#MarkerFilter)"/>
+<polyline tooltip="Close"  class="eBsystem" points="0,0 -5,0 5,0 0,0 0,-5 0,5 0,0" fill="#484848" stroke="#484848" stroke-width="1"/> 
+</g>
+</g>
+
+<g id="gNewOptionPicker" transform="scale(2) translate(2000,2000)" pointer-events="none" >
+
+</g>
+	
+<g id="toolTip" />
+<g id="eB-Title" />  	
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">  
+     
+
+				
+    <style type="text/css">
+    circle.eBsystem:hover, polyline.eBsystem:hover, rect.eBsystem:hover, path.eBsystem:hover, text.eBsystem:hover  
+    { 	cursor:pointer; 
+    	fill:#993300;
+    }
+    
+    circle.eb_marker:hover, polyline.eb_marker:hover, rect.eb_marker:hover, path.eb_marker:hover, text.eb_marker:hover  
+    { 	cursor:pointer; 
+    	fill:#993300;
+    }
+  
+  </style>
+     			
+  <g id="navButtons" transform="matrix(1.3,0,0,1.3,-2,0)" >
+  
+  	<circle tooltip="Reset" class="eBsystem"   cx="2" cy="1" r="4" fill="orange" stroke="#666666" stroke-width="0.5"  onclick="sessionStorage.clear();"/>
+  	<g id="eB-North" tooltip="North" transform="scale(1) translate(30,30) rotate(0)">
+  	<polyline  points="0,0 -10,20 0,10 10,20 0,0" fill="white" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)"  />
+  	<polyline tooltip="North"  points="0,0 -10,20 0,10 0,0" fill="#A6A6A6" stroke="#666666" stroke-width="0.5" />
+  	<polyline tooltip="North"   points="0,0 10,20 0,10 0,0" fill="white" stroke="#666666" stroke-width="0.5" />
+  	<text id="eB-NorthText" tooltip="North" transform="translate(-5,-5) rotate(0 5,-5)" class="eBsystem" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="12px" fill="#8A8A8A" >N</text>
+     </g>
+     <g tooltip="Pan" transform="scale(1.2) translate(-5,21)">
+     <circle tooltip="Pan" class="eBsystem"   cx="30.5" cy="50.5" r="17.5" fill="white" stroke="#666666" stroke-width="0.5"/>
+     <polyline tooltip="Pan Up" class="eBsystem"   points="30,34 46,50 30,66 14,50 30,34" fill="white" stroke="#666666" stroke-width="0.5" filter="url(#dropshadow)" />
+     <circle tooltip="Center" class="eBsystem"   cx="30" cy="50" r="4" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-pan" onkeydown="return buttonEvent(10, evt);" onclick="return buttonEvent(10, evt);"/>
+     <polyline tooltip="Pan Up" class="eBsystem"   points="22,42 38,42 30,34 22,42" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-panN"  onmousedown="return buttonEvent(11, evt);" onkeydown="return buttonEvent(11, evt);"  onclick="return buttonEvent(11, evt);"/>
+     <polyline tooltip="Pan Down" class="eBsystem"   points="22,58 38,58 30,66 22,58" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-panS"  onmousedown="return buttonEvent(12, evt);"  onkeydown="return buttonEvent(12, evt);"  onclick="return buttonEvent(12, evt);" />
+     <polyline tooltip="Pan Left" class="eBsystem"   points="22,42 22,58 14,50 22,42" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-panE" onmousedown="return buttonEvent(13, evt);"  onkeydown="return buttonEvent(13, evt);"  onclick="return buttonEvent(13, evt);"/>
+     <polyline tooltip="Pan Right" class="eBsystem"   points="38,42 38,58 46,50 38,42" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-panW" onmousedown="return buttonEvent(14, evt);"  onkeydown="return buttonEvent(14, evt);"  onclick="return buttonEvent(14, evt);" />
+     </g>
+     <g id="old" transform="scale(0) translate(0,13.5)">
+     <rect tooltip="Zoom In" class="eBsystem"   x="20" y="100" width="20" height="20" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-zoomO1" onkeydown="return buttonEvent(15, evt);" onclick="return buttonEvent(15, evt);"  filter="url(#dropshadow)" />
+     <polyline tooltip="Zoom Out" class="eBsystem"   points="25,110 35,110 30,110 30,105 30,115 30,110" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-zoomO2" onkeydown="return buttonEvent(15, evt);" onclick="return buttonEvent(15, evt);"  />
+     <rect tooltip="Zoom Out" class="eBsystem"    x="25" y="200" width="10" height="10" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-zoomI1" onkeydown="return buttonEvent(16, evt);" onclick="return buttonEvent(16, evt);" filter="url(#dropshadow)" />
+     <polyline tooltip="Zoom In" class="eBsystem"   points="27,205 33,205" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-zoomI2" onkeydown="return buttonEvent(16, evt);" onclick="return buttonEvent(16, evt);"/>
+     <rect tooltip="Zoom In ++" class="eBsystem"   x="29" y="120" width="3" height="20" fill="white" stroke="#666666" stroke-width="0.5"   id="eB-zoomI3" onkeydown="return buttonEvent(17, evt);" onclick="return buttonEvent(17, evt);" />
+     <rect tooltip="Zoom In +" class="eBsystem"  x="29" y="140" width="3" height="20" fill="white" stroke="#666666" stroke-width="0.5"   id="eB-zoomI3" onkeydown="return buttonEvent(18, evt);" onclick="return buttonEvent(18, evt);"  />
+     <rect tooltip="Zoom Out -" class="eBsystem"  x="29" y="160" width="3" height="20" fill="white" stroke="#666666" stroke-width="0.5"   id="eB-zoomI3" onkeydown="return buttonEvent(19, evt);" onclick="return buttonEvent(19, evt);"  />
+     <rect tooltip="Zoom Out --" class="eBsystem"  x="29" y="180" width="3" height="20" fill="white" stroke="#666666" stroke-width="0.5"   id="eB-zoomI3" onkeydown="return buttonEvent(20, evt);" onclick="return buttonEvent(20, evt);"   />
+  	</g>
+  	<g transform="scale(1) translate(0,13.5)">
+     <rect tooltip="Zoom In" class="eBsystem"   x="20" y="100" width="20" height="20" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-zoomO1" onkeydown="return buttonEvent(15, evt);" onclick="return buttonEvent(15, evt);"  filter="url(#dropshadow)" />
+     <polyline tooltip="Zoom In" class="eBsystem"   points="25,110 35,110 30,110 30,105 30,115 30,110" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-zoomO2" onkeydown="return buttonEvent(15, evt);" onclick="return buttonEvent(15, evt);"  />
+     <rect tooltip="Zoom Out" class="eBsystem"   x="20" y="125" width="20" height="20" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-zoomO1" onkeydown="return buttonEvent(15, evt);" onclick="return buttonEvent(16, evt);"  filter="url(#dropshadow)" />
+     <polyline tooltip="Zoom Out" class="eBsystem"   points="26,135 34,135" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  id="eB-zoomI2" onkeydown="return buttonEvent(16, evt);" onclick="return buttonEvent(16, evt);"/>
+  	</g>
+  	<g tooltip="Select" transform="scale(1.75) translate(12,102)">
+          	<polyline tooltip="Select" class="eBsystem" onclick="return buttonEvent(42, evt);"  points="0,0 0,10 10,10 10,0 0,0" fill="#EF8412" stroke="#A6A6A6" stroke-width="0.5"  />
+			<polyline tooltip="Select" class="eBsystem"  onclick="return buttonEvent(42, evt);"  points="5,10 5,5 9,5 5,10" fill="#333333" stroke="#333333" stroke-width="0.5"  />
+			<polyline tooltip="Previous" class="eBsystem" onclick="return buttonEvent(303, evt);"   points="-2,1 -2,9 -7,5 -2,1" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline tooltip="Next" class="eBsystem" onclick="return buttonEvent(304, evt);"   points="12,1 12,9 17,5 12,1" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline tooltip="Go Up" transform="scale(0)" class="eBsystem" onclick="return buttonEvent(301, evt);"   points="1,-2 9,-2 5,-7 1,-2" fill="#333333" stroke="#333333" stroke-width="0.5"   />
+			<polyline tooltip="Go Down" class="eBsystem" onclick="return buttonEvent(302, evt);"  points="1,12 9,12 5,17 1,12" fill="#333333" stroke="#333333" stroke-width="0.5"   /> 	  	
+     </g>
+   <g id="PlanView" tooltip="Show Plan" transform="translate(7,190) scale(0.75) " onclick="return buttonEvent(102, evt);"> 
+		  	 <circle cx="30" cy="50" r="15" fill="none" stroke="#A6A6A6" stroke-width="3"  />
+    		 <circle tooltip="View Type" class="eBsystem"   cx="30" cy="50" r="10" fill="white" stroke="#A6A6A6" stroke-width="2"  id="eB-pan" />
+	</g> 
+  	<g tooltip="Grid" transform="translate(0,170)">
+  	<rect tooltip="Grid" class="eBsystem"  x="20" y="75" width="20" height="20" fill="white" stroke="#666666" stroke-width="0.5"  id="eB-grid" onkeydown="return buttonEvent(4, evt);"  onclick="return buttonEvent(4, evt);"  filter="url(#dropshadow)" />
+     <polyline tooltip="Grid" pointer-events="none"  points="20,80 40,80" fill="white" stroke="#666666" stroke-width="0.5"  />
+     <polyline tooltip="Grid" pointer-events="none"  points="20,85 40,85" fill="white" stroke="#666666" stroke-width="0.5"  />
+     <polyline tooltip="Grid" pointer-events="none"  points="20,90 40,90" fill="white" stroke="#666666" stroke-width="0.5"  />
+     <polyline tooltip="Grid" pointer-events="none"  points="25,75 25,95" fill="white" stroke="#666666" stroke-width="0.5"  />
+     <polyline tooltip="Grid" pointer-events="none"  points="30,75 30,95" fill="white" stroke="#666666" stroke-width="0.5"  />
+     <polyline tooltip="Grid" pointer-events="none"  points="35,75 35,95" fill="white" stroke="#666666" stroke-width="0.5"  />
+ 	 </g>
+ </g>
+ 	  <g id="navButtons2" transform="matrix(1,0,0,1,0,30)" >
+ 	  	<g id="eB-scale"> 
+ 	  	<polyline tooltip="Scale"  points="25,350 38,350 38,354 25,354 25,350" fill="#A6A6A6" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" />
+	    <polyline tooltip="Scale"  points="38,350 51,350 51,354 38,354 38,350 " fill="white" stroke="#666666" stroke-width="0.5" filter="url(#dropshadow)"/>
+	    </g>
+   		<text   id="eB-scaleTxt" tooltip="Scale" x="26" y="345" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="10px" fill="#8A8A8A" > 1m
+     	</text>
+ 	 </g> 
+ 
+  	<g id="toolbarButtons2"  transform="translate(2000 2000) scale(1) ">
+		<g class="eBsystem" id="TreeView" tooltip="Element/Tree"  transform="translate(-2)" onclick="return buttonEvent(101, evt);"> 
+		  	<circle class="eBsystem" cx="17" cy="17" r="15" fill="none" stroke="#A6A6A6" stroke-width="3"  />
+		  	<polyline class="eBsystem" tooltip="TreeView" fill="white" points="20,14 20,10 15,10 15,14 20,14" stroke="#A6A6A6" stroke-width="2" /> 
+		  	<polyline class="eBsystem" tooltip="TreeView" fill="white" points="24,24 24,20 19,20 19,24 24,24" stroke="#A6A6A6" stroke-width="2" /> 
+		  	<polyline class="eBsystem" tooltip="TreeView" fill="white" points="16,24 16,20 11,20 11,24 16,24" stroke="#A6A6A6" stroke-width="2" />
+		  	<polyline class="eBsystem" tooltip="TreeView" fill="white" points="18,14 18,17 16,17 16,20 16,17 20,17 20,20" stroke="#A6A6A6" stroke-width="1" /> 
+		</g> 
+		<g class="eBsystem" id="PlanView" tooltip="Plan" transform="translate(-14,15)" onclick="return buttonEvent(102, evt);"> 
+		  	 <circle cx="30" cy="50" r="15" fill="none" stroke="#A6A6A6" stroke-width="3"  />
+    		 <circle tooltip="View Type" class="eBsystem"   cx="30" cy="50" r="10" fill="white" stroke="#A6A6A6" stroke-width="2"  id="eB-pan" />
+	  </g>
+	  <g class="eBsystem" id="ElevationView" tooltip="Elevation" transform="translate(-14,60)" onclick="return buttonEvent(103, evt);"> 
+		  	 <circle cx="30" cy="50" r="15" fill="none" stroke="#A6A6A6" stroke-width="3"  />
+    		 <circle tooltip="View Type" class="eBsystem"   cx="30" cy="50" r="10" fill="white" stroke="#A6A6A6" stroke-width="2"  id="eB-pan" />
+	  </g>
+	  <g class="eBsystem" id="VisualView" tooltip="Visual" transform="translate(-14,105)" onclick="return buttonEvent(104, evt);"> 
+		  	 <rect tooltip="Visuals" class="eBsystem"   x="15" y="35" width="30" height="30" fill="white" stroke="#666666" stroke-width="0.5" filter="url(#dropshadow)" />
+    		 <circle tooltip="Visuals" class="eBsystem"   cx="30" cy="50" r="10" fill="white" stroke="#A6A6A6" stroke-width="2" />
+	  </g>
+
+	</g>
+	  
+	<g id="toolbarButtons1"  transform="scale(1) translate(2000 2000)">
+			<g class="eBsystem" id="newVersion" transform="translate(0,15)" onclick="return buttonEvent(46, evt);"> 
+			  	<polyline class="eBsystem" tooltip="New Version" fill="white"   
+			  	points="0,0 5,-5 10,-5 15,0 25,0 25,20 0,20 0,0" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+			  	<polyline class="eBsystem" tooltip="New Version" fill="white"   
+			  	points="0,20 2,3 27,3 27,20 0,20" stroke="#666666" stroke-width="0.5" /> 
+			  	<polyline class="eBsystem" tooltip="New Version" fill="#A6A6A6"   
+			  	points="15,13 25,13 20,13 20,8 20,18 20,8 20,13" stroke="#A6A6A6" stroke-width="3" /> 
+		  	</g> 
+	    	<g class="eBsystem" id="openVersion" transform="translate(0,60)" onclick="return buttonEvent(45, evt);"> 
+			  	<polyline class="eBsystem" tooltip="Version List" fill="white"   
+			  	points="0,0 5,-5 10,-5 15,0 25,0 25,20 0,20 0,0" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+			  	<polyline class="eBsystem" tooltip="Version List" fill="white"   
+			  	points="0,20 7,5 30,5 25,20 0,20" stroke="#666666" stroke-width="0.5"/> 
+		  	</g> 
+
+			<g class="eBsystem" id="nextStage" tooltip="Submit Version" transform="translate(0,105)" onclick="return buttonEvent(41, evt);"> 
+			  	<polyline class="eBsystem" tooltip="Submit Version" fill="white"   
+			  	points="0,0 5,-5 10,-5 15,0 25,0 25,20 0,20 0,0" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+			  	<polyline class="eBsystem" tooltip="Submit Version" fill="white"   
+			  	points="0,20 2,3 27,3 27,20 0,20" stroke="#666666" stroke-width="0.5" /> 
+			  	<polyline class="eBsystem" tooltip="Submit Version" fill="#A6A6A6"   
+			  	points="15,13 20,18 25,8 20,18 15,13" stroke="#EF8412" stroke-width="3" /> 
+		  </g> 
+		
+		<g transform=" scale(1) translate(4,170)">
+		     <g class="eBsystem" id="markerLegend" onclick="return buttonEvent(42, evt);"  transform="translate(-1,0) scale(0)"> 
+				<circle class="eBsystem" tooltip="Show Options" cx="10" cy="10" r="15" fill="#EF8412"  filter="url(#MarkerFilter)"> 
+     			</circle>
+				<text  pointer-events='none'  class="eBsystem" id="markerNum"  x="7" y="15" font-family="Verdana,Arial,Helvetica,sans-serif" font-size="14px" fill="#333333" >0
+     			</text>
+				
+		  	</g> 
+
+			
+		  	<g class="eBsystem" tooltip="Show Interiors" id="showInteriors" transform="translate(-4,45)" onclick="return buttonEvent(50, evt);"> 
+			  	<polyline class="eBsystem"  tooltip="Show Interiors" fill="white"   
+			  	points="0,0 25,0 25,20 0,20 0,0" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+			  	<polyline fill="white"   
+			  	points="0,5 10,5 10,10 0,10 0,5" stroke="#A6A6A6" stroke-width="1" /> 
+			  	<polyline fill="white"   
+			  	points="25,5 15,5 15,15 25,15 25,5" stroke="#A6A6A6" stroke-width="1" /> 
+		  	</g> 
+			
+			<g transform="translate(-2,140)">
+				<text class="eBsystem" tooltip="Price Breakup" id="priceBreakup"  x="0" y="0" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="40px" fill="#8A8A8A"  onclick="return buttonEvent(43, evt);"  filter="url(#dropshadow)" >`</text>
+	    	</g>
+	    	
+	    	<g class="eBsystem" id="changeHistory" transform="translate(-2,60)" onclick="return buttonEvent(44, evt);"> 
+			  	<polyline class="eBsystem" tooltip="Change History" fill="white"   points="0,105 5,100 20,100 20,130 0,130 0,105" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+			  	<polyline class="eBsystem" tooltip="Change History" fill="white"   points="5,110 15,110" stroke="#666666" stroke-width="0.5" /> 
+			  	<polyline class="eBsystem" tooltip="Change History" fill="white"   points="5,115 15,115" stroke="#666666" stroke-width="0.5" /> 
+			  	<polyline class="eBsystem" tooltip="Change History" fill="white"   points="5,120 15,120" stroke="#666666" stroke-width="0.5" /> 
+			</g>
+			
+			<g class="eBsystem" id="3Dimension" transform="translate(-3,125)" onclick="return buttonEvent(51, evt);"> 
+				  	<polyline class="eBsystem" tooltip="3D" fill="white"   points="0,100 25,100 25,120 0,120 0,100" stroke="#666666" stroke-width="0.5"  filter="url(#dropshadow)" /> 
+				  	<polyline class="eBsystem" tooltip="3D" fill="white"   points="0,100 3,97 28,97 25,100" stroke="#666666" stroke-width="0.5" /> 
+				  	<polyline class="eBsystem" tooltip="3D" fill="white"   points="25,100 28,97 28,117 25,120" stroke="#666666" stroke-width="0.5" /> 
+					<text class="eBsystem" tooltip="3D"  x="2" y="115" font-family="Rupee Foradian,Verdana,Arial,Helvetica,sans-serif" font-size="15px" fill="#A6A6A6"  >3D</text>
+			</g>
+	
+		
+		</g>	
+		
+	</g>
+</svg>     
+ <g id='tt_ToolTip' opacity='0.8' display='none' pointer-events='none'>
+      <rect id='tt_tipbox' x='0' y='5' width='90' height='20' rx='2' ry='2' fill='#FFFF99' stroke='black'/>
+      <text id='tt_tipText' x='5' y='20' font-family='Arial' font-size='12'>
+      </text>
+</g>
+<g id="HelpOverview">
+<g id="HelpOverviewGroup"/>
+</g>
+
+</svg>
