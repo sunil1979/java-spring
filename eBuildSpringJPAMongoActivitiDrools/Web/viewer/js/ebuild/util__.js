@@ -5,15 +5,7 @@ var w = window;
 var d = document;
 var e = d.documentElement;
 var g = d.getElementsByTagName('body')[0];
-var sort_by = function(field, reverse, primer) {
-	var key = function(x) {
-		return primer ? primer(x[field]) : x[field];
-	};
-	return function(a, b) {
-		var A = key(a);
-		return ((A < B) ? -1 : (A > B) ? +1 : 0) * [-1,1][+!!reverse];
-	};
-};
+
 
 function serializeXmlNode(xmlNode) {
 	try {
@@ -76,7 +68,7 @@ function fnAfterTemplateLoaded(svg, error) {
 	y = y - gridHeight;
 	$('#svgCanvas').width(x);
 	$('#svgCanvas').height(y);
-	//var viewBoxStr = "0 0 " + x + " " + y;
+	// var viewBoxStr = "0 0 " + x + " " + y;
 	var viewBoxStr = "0 0 45947 11339";
 	$('#svgCanvas').attr('viewBox', viewBoxStr);
 
@@ -88,26 +80,8 @@ function fnAfterTemplateLoaded(svg, error) {
 	container = svg.group(container, "mainElement", {
 		transform : "translate(0,0) rotate(0) scale(1,1)"
 	});
-/*
-	emArray.sort(function(a,b){
-		//console.log("document :"+document.evaluate);
 
-		var aZorder = document.evaluate('./zOrder/text()',
-				a, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-				.iterateNext();
-		var bZorder = document.evaluate('./zOrder/text()',
-				b, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-				.iterateNext();
-		var retResult = 0;
-		if(bZorder != null && aZorder != null){
-			retResult = parseFloat(bZorder.nodeValue) - parseFloat(aZorder.nodeValue);
-			//retResult = parseFloat(aZorder.nodeValue) - parseFloat(bZorder.nodeValue);
-		}
-		//console.log("retResult :"+retResult);
-		return retResult;});
-*/	
-	//create SVG structure
-	
+	// create SVG structure
 	for ( var i = 0; i < emArray.length; i++) {
 		var idNodeXPathResult = document.evaluate('./id/text()', emArray[i],
 				null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
@@ -143,28 +117,78 @@ function fnAfterTemplateLoaded(svg, error) {
 			var parentEMID = document.evaluate('./id/text()', parentEM, null,
 					XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
 			container = svgWrapper.getElementById(parentEMID.nodeValue);
-			if(!container){
-				console.log("container not found :"+parentEMID.nodeValue);
-			}
 		} else {
 			container = svgWrapper.getElementById("mainElement");
 		}
 
-		var emGroup = svg.group(container, elementManifestGroupId, {
+		svg.group(container, elementManifestGroupId, {
 			transform : transformStr
 		});
-		var view = 'svg/1/' + elementIdNodeXPathResult.nodeValue;
-		var elementSVGId = elementManifestGroupId + '_E';
-		svg.group(emGroup, elementSVGId);
-		$('#' + elementSVGId).svg({
-			loadURL : view,
-			svgTransform : transformStr,
-			addTo : false,
-			changeSize : false,
-			onLoad : loadDone
-		});
 	}
-	//sort the emArray
+
+	console.log("STRUCTYRE CREATED");
+	// sort the emArray
+
+	emArray.sort(function(a, b) {
+		// console.log("document :" + document.evaluate);
+
+		var aZorder = document.evaluate('./zOrder/text()', a, null,
+				XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
+		var bZorder = document.evaluate('./zOrder/text()', b, null,
+				XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
+		var retResult = 0;
+		if (bZorder != null && aZorder != null) {
+			retResult = parseFloat(aZorder.nodeValue)
+					- parseFloat(bZorder.nodeValue);
+		}
+		// console.log("retResult :" + retResult);
+		return retResult;
+	});
+
+	// print array
+	for ( var i = 0; i < emArray.length; i++) {
+		var zOrder = document.evaluate('./zOrder/text()', emArray[i], null,
+				XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
+		var elementIdNodeXPathResult = document.evaluate('./element/id/text()',
+				emArray[i], null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
+				.iterateNext();
+		console.log("zOrder :" + zOrder.nodeValue + " : child element :"
+				+ elementIdNodeXPathResult.nodeValue);
+	}
+	console
+			.log("****************************************************************");
+	// add SVG views to SVG structure
+
+	for ( var i = 0; i < emArray.length; i++) {
+		var zOrder = document.evaluate('./zOrder/text()', emArray[i], null,
+				XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
+		// console.log("zOrder :"+);
+		if (parseFloat(zOrder.nodeValue) == 5) {
+			var elementIdNodeXPathResult = document.evaluate(
+					'./element/id/text()', emArray[i], null,
+					XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).iterateNext();
+			var idNodeXPathResult = document.evaluate('./id/text()',
+					emArray[i], null, XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+					null).iterateNext();
+
+			var elementManifestGroupId = idNodeXPathResult.nodeValue;
+			var view = 'svg/1/' + elementIdNodeXPathResult.nodeValue;
+			var elementSVGId = elementManifestGroupId + '_E';
+			var emGroup = svgWrapper.getElementById(elementManifestGroupId);
+			svg.group(emGroup, elementSVGId);
+			var transformStr = $('#' + elementManifestGroupId)
+					.attr('transform');
+			$('#' + elementSVGId).svg({
+				loadURL : view,
+				svgTransform : transformStr,
+				addTo : false,
+				changeSize : false,
+				onLoad : loadDone
+			});
+		}
+	}
+
+
 }
 
 function loadDone(svg, error) {
