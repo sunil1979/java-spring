@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean name="dbPublisher" class="com.niche.publish.implementation.DBMessagePublisher" />
+
+	<bean name="filePublisher" class="com.niche.publish.implementation.FileMessagePublisher" />
+
+	<bean name="publisherService" class="com.niche.publish.MessagePublisherService">
+		<constructor-arg ref="dbPublisher"></constructor-arg>
+		<!-- constructor-arg ref="filePublisher"></constructor-arg-->
+	</bean>
+	
+	
+	<!-- bean name="publisherService" class="com.niche.publish.MessagePublisherService">
+		<property name="mPublisher" ref="dbPublisher"></property>
+		<property name="mPublisher" ref="filePublisher"></property>
+	</bean-->
+</beans>
